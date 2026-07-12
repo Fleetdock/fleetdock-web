@@ -1,0 +1,74 @@
+---
+title: Nodes
+description: Add, monitor, and remove database nodes — status, CPU, memory, disk, connectivity, and offline behavior.
+---
+
+A **node** (shown as a *server* in the dashboard) is a host running the Fleetdock Agent. It
+is where managed database instances live and where operations are executed locally.
+
+## What a database node is
+
+A node is any Linux server you connect with the agent. Fleetdock records its status,
+operating system, memory, disk, Docker availability, and detected database engine version,
+and it keeps a time-series history of resource metrics from heartbeats.
+
+## Adding a node
+
+Open **Servers → Connect server** to generate a single-use registration token and install
+command, then run it on the server (see [Agent installation](/docs/agents)). The node
+enrolls and appears within about 30 seconds.
+
+## Node status
+
+Each node reports a status derived from its heartbeats:
+
+- **Online** — heartbeating normally.
+- **Maintenance** — you can put a node into maintenance while you work on it.
+- **Offline** — no heartbeat for the timeout window.
+
+## Resource metrics
+
+Every 30-second heartbeat records a snapshot that is charted on the node's detail page:
+
+- **CPU** utilization
+- **Memory** usage
+- **Disk** usage
+- **Connections**
+
+Per-heartbeat samples are retained for `FLEETDOCK_METRICS_RETENTION` (default `168h`, seven
+days).
+
+## Connectivity
+
+Agents connect **outbound** to the Manager's `FLEETDOCK_PUBLIC_URL`. The Manager does not
+open connections back to the agent for operations — the agent polls. For **live database
+administration** and **external instances**, however, the control plane connects directly
+to the database port; see [Networking](/docs/networking).
+
+## Capacity
+
+Node capacity is the CPU, memory, and disk headroom reported by heartbeats, plus the count
+of instances running on the node. Use it to decide where to provision the next instance.
+
+<Callout type="info">
+  Fleetdock reports capacity metrics but does not currently enforce a hard capacity limit
+  when provisioning. Review a node's headroom before adding instances.
+</Callout>
+
+## Node labels and maintenance mode
+
+Use maintenance mode to signal that a node is being worked on. Node labels help you group
+and identify servers within a larger fleet.
+
+## Removing a node
+
+Uninstall the agent on the server (see [Agent installation](/docs/agents#uninstall)), then
+remove the server from the dashboard. Removing a node does not delete data on the host by
+itself — uninstall the agent and clean up any provisioned containers you no longer need.
+
+## When a node goes offline
+
+If a node stops heartbeating for `FLEETDOCK_HEARTBEAT_TIMEOUT` (default `2m`), the Manager
+flips it to `offline`. Operations targeting a managed instance on that node cannot be
+executed by its agent until it returns. You can configure alert rules to notify you when a
+server goes offline — see [Backups](/docs/backups) and the Notifications page.

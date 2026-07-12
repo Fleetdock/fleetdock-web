@@ -1,0 +1,92 @@
+---
+title: Database instances
+description: Provision, register, and manage MariaDB instances — configuration, lifecycle, credentials, logs, and connecting external applications.
+---
+
+An **instance** is a database server process that Fleetdock manages. This page covers
+provisioning new instances, the instance lifecycle, and connecting to them.
+
+## Managed vs external instances
+
+- **Managed** instances run on your nodes. They are either **provisioned** by Fleetdock (a
+  MariaDB Docker container it launches) or **registered** (an existing MariaDB on the node).
+  Operations run through that node's agent against `127.0.0.1`.
+- **External** instances are databases you already host elsewhere. The control plane
+  connects to them directly and can **import** their existing databases.
+
+## Provisioning a MariaDB instance
+
+Open **Servers → your server → Add instance → Provision new**. Fleetdock launches a MariaDB
+Docker container on the node.
+
+### Configuration fields
+
+- **Database version** — the MariaDB image/version to run.
+- **Port assignment** — the port published on the server for client access.
+- **Storage** — a named Docker data volume backing the instance.
+- **Credentials** — a generated root password stored encrypted; you can create additional
+  users and grants afterward.
+- **Resource limits** — constrain the container's resource usage where supported.
+
+<Callout type="info">
+  Provisioning requires Docker on the node. The agent installer installs Docker
+  automatically. Provisioned instances always run MariaDB; MySQL and PostgreSQL are
+  supported as registered or external instances.
+</Callout>
+
+## Registering an existing database
+
+Choose **Add instance → Register** (managed) to point Fleetdock at a database already
+running on the node, or **Add instance → External** to connect to a database hosted
+elsewhere. Use **Import DBs** to pull existing databases into Fleetdock's inventory.
+
+## Status lifecycle
+
+A provisioned instance moves through states as you operate it. From its detail page you can:
+
+- **Start / Stop / Restart** the underlying container.
+- **Inspect** its info, databases, and database users with their grants.
+- **Delete** the instance.
+
+## Restarting, stopping, and deleting
+
+Start, stop, and restart act on the provisioned container. Deleting removes the container
+and, if you confirm, its data volume.
+
+<Callout type="error">
+  Deleting a provisioned instance removes its container. If you confirm removal of the data
+  volume, the databases on it are destroyed permanently. Back up first.
+</Callout>
+
+## Inspecting logs
+
+Container-level logs are available on the node with standard Docker tooling:
+
+```bash
+docker logs <container-name>
+```
+
+Operation-level history (create, drop, backup, restore, connection test) is tracked on the
+**Operations** page for every instance.
+
+## Connecting from external applications
+
+Provisioned instances publish a port on the server. Connect with any MariaDB-compatible
+client or application using the published port and the instance credentials:
+
+```bash
+mariadb -h <server-address> -P <published-port> -u <user> -p
+```
+
+<Callout type="warn">
+  The instance port must be reachable from wherever your application connects — and, for
+  live administration, from the control plane. Keep it on a private network where possible.
+  See [Networking](/docs/networking).
+</Callout>
+
+## Databases on an instance
+
+Within an instance you create logical **databases**. When admin credentials exist, creating
+a database physically creates it via an operation; otherwise it is registered as
+metadata-only. Databases can be locked, unlocked, and soft-deleted with a seven-day
+recovery window.

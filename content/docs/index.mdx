@@ -1,0 +1,82 @@
+---
+title: Introduction
+description: Fleetdock is an open-source control plane for managing self-hosted database infrastructure across multiple servers.
+---
+
+Fleetdock is an open-source control plane for your database fleet. It gives teams a
+single dashboard and API to provision, monitor, back up, restore, and migrate
+self-hosted database instances across many servers — instead of managing each one by
+hand over SSH.
+
+## What Fleetdock is
+
+Fleetdock manages **databases** as the product. You connect your servers with a
+lightweight agent, and Fleetdock standardizes the operations that keep those databases
+healthy:
+
+- Provision new database instances with consistent configuration.
+- Monitor node availability and resource usage from regular heartbeats.
+- Run manual and scheduled backups to object storage.
+- Restore and move databases through controlled, tracked workflows.
+- Manage database users, grants, and credentials from one place.
+
+It follows a **Manager and Agent** architecture: the Fleetdock Manager is the central
+control plane, and a Fleetdock Agent runs on each database node to execute approved
+operations locally.
+
+## Database engine support
+
+Fleetdock focuses on MariaDB, and also administers MySQL and PostgreSQL:
+
+- **Provisioning** launches new **MariaDB** instances as isolated Docker containers on a
+  connected server.
+- **Registered and external instances** — databases you already run — are supported for
+  **MariaDB, MySQL, and PostgreSQL**, including live database administration (users,
+  grants, tables, and a SQL console).
+
+<Callout type="info">
+  Other engines such as Redis are not supported. Engine support reflects what the current
+  release implements; see the [roadmap](https://github.com/TajBrains/fleetdock/blob/main/ROADMAP.md)
+  for what is planned.
+</Callout>
+
+## Who it is for
+
+Fleetdock is built for teams that operate many isolated database instances across
+multiple servers, including:
+
+- SaaS platforms with one database per customer
+- ERP and CRM platforms with isolated tenant databases
+- Hosting providers and agencies managing client databases
+- Self-hosted software vendors offering managed database operations
+- Infrastructure teams replacing internal scripts and manual SSH workflows
+
+## What Fleetdock is not
+
+- It is **not** a generic Docker or container management platform. Docker is an internal
+  execution layer used to run provisioned instances — databases are the product.
+- It is **not** an application deployment platform or a Kubernetes replacement.
+- It does **not** provide automatic failover or high availability. Those are not
+  implemented in the current release.
+
+## High-level architecture
+
+```text
+Fleetdock Manager  (control plane: UI, API, worker, Postgres metadata)
+        │
+        ├── Fleetdock Agent ── Database Node 1 ── MariaDB A, MariaDB B
+        ├── Fleetdock Agent ── Database Node 2 ── MariaDB C, MariaDB D
+        └── Fleetdock Agent ── Database Node 3 ── MariaDB E
+```
+
+The Manager stores metadata (users, servers, encrypted credentials, and job history) in
+PostgreSQL and never touches a node except through its agent. Agents enroll over a
+single outbound connection, heartbeat their health, and execute only approved
+operations.
+
+## Next steps
+
+- Follow [Getting started](/docs/getting-started) to go from zero to your first managed
+  database instance.
+- Learn the vocabulary in [Core concepts](/docs/concepts).
+- Read the [Security](/docs/security) model before exposing the control plane.

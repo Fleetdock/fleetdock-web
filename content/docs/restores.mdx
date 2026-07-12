@@ -1,0 +1,61 @@
+---
+title: Restore
+description: Restore a database from a backup — same or new instance, checksum verification, downtime expectations, and failure handling.
+---
+
+A **restore** writes a backup's contents into a target database. Restores are tracked
+operations and always verify the backup before touching the target.
+
+## Selecting a backup
+
+Restores start from a backup. Pick the backup you want from a database's backup list, then
+choose where to restore it.
+
+## Restoring to the same instance
+
+Restoring into the same database overwrites its current contents with the backup. This is a
+destructive operation on the target.
+
+<Callout type="error">
+  Restoring over an existing database replaces its data. There is no automatic snapshot of
+  the pre-restore state — take a fresh backup first if you might need to go back.
+</Callout>
+
+## Restoring to a new instance or name
+
+Restoring into a **different** instance and/or database name creates a copy from the backup.
+This is also how you **move a database to another server** — see [Migration](/docs/migrations).
+
+## Validation
+
+Before writing anything to the target, Fleetdock verifies the backup artifact's **SHA-256
+checksum**. After restoring, it counts the restored tables and reports the count, so you get
+a concrete signal that the restore produced data.
+
+## Expected downtime
+
+A restore that overwrites a live database makes that database inconsistent while it runs and
+unavailable to applications until it completes. Plan a maintenance window for in-place
+restores of production databases. Restoring into a **new** instance does not affect the
+original.
+
+## Rollback behavior
+
+<Callout type="warn">
+  Fleetdock does not provide transactional rollback of a restore. If a restore into an
+  existing database fails partway, the target may be left partially written. Recover by
+  restoring a known-good backup (ideally the fresh one you took beforehand).
+</Callout>
+
+## Failure scenarios
+
+- **Checksum mismatch** — the restore aborts before touching the target; the backup artifact
+  is corrupt or truncated. Use a different backup.
+- **Target unreachable** — the instance port is not reachable from the executing side
+  (agent for managed, control plane for external). See [Networking](/docs/networking).
+- **Insufficient disk** — the target node lacks space for the restored data. Free space or
+  choose another node.
+- **Credential errors** — the stored admin credentials cannot write to the target. Update the
+  instance credentials and retry.
+
+Every restore appears on the **Operations** page with its status and any error message.

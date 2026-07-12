@@ -1,0 +1,154 @@
+---
+title: Security
+description: Fleetdock's trust model — Manager and Agent privileges, tokens, encryption, audit, compromise scenarios, and current limitations.
+---
+
+Fleetdock holds credentials for your entire database fleet, so its security model is
+explicit — including the boundaries it does not yet cover. Read this before exposing the
+control plane. To report a vulnerability, see the
+[security policy](https://github.com/TajBrains/fleetdock/blob/main/SECURITY.md).
+
+## Trust boundaries
+
+```text
+        Internet / corp network
+                  │
+        TLS reverse proxy (443 only public)
+                  │
+      ┌───────────┼────────────┐
+  Dashboard      API      Metadata DB (Postgres, private)
+                  │
+      ┌───────────┴────────────┐
+ Managed servers          External DBs
+ (agent → API, outbound)  (API → host:port, direct)
+```
+
+## Manager privileges
+
+The Manager is the highest-value component. It stores encrypted credentials for the whole
+fleet and can enqueue operations on every node. Protect it accordingly: terminate TLS in
+front of it, restrict who can reach it, and monitor the **Operations** log.
+
+## Agent privileges
+
+Each agent runs as **root** via systemd today and executes approved operations on its own
+node. Its authority is scoped to that single node and the databases on it. Treat any host
+running an agent as one that can act on its local databases and Docker.
+
+## Docker socket access
+
+Provisioning uses Docker on the node, so the agent can create and remove database containers
+and their data volumes on that host. Docker access is powerful — a compromised agent has
+Docker-level control of its node.
+
+## Database credentials
+
+Instance admin credentials and destination storage keys are **envelope-encrypted** at rest
+with `FLEETDOCK_ENCRYPTION_KEY`. Use **least-privilege** database users for stored admin
+credentials so a leak cannot exceed its grants.
+
+## Tokens and their lifecycle
+
+Fleetdock uses three token types, each with a display prefix:
+
+| Token | Prefix | Purpose | Lifecycle |
+| ----- | ------ | ------- | --------- |
+| Registration token | `fleetr_` | Enroll a new agent | Single-use, short-lived |
+| Agent bearer token | `fleeta_` | Ongoing agent authentication | Issued on enrollment, stored on the node |
+| API token | `fleetd_` | Automation / CI access | Created, listed, and revoked in the dashboard |
+
+<Callout type="warn">
+  Never share a real registration token or paste one into a public channel. Because the
+  agent's `fleeta_` token is stored on disk in the agent state directory, protect that
+  directory's permissions and restrict backup access to it.
+</Callout>
+
+### Creating, expiring, and revoking tokens
+
+Create API tokens scoped like sessions and set an expiry. Revoke API tokens from the
+dashboard. Rotating `FLEETDOCK_JWT_SECRET` invalidates all sessions and login-derived API
+tokens (but not agent tokens). Suspending a user account stops its sessions and tokens from
+working immediately.
+
+<Callout type="info">
+  Explicit **revocation of an issued agent registration/bearer token** is limited in the
+  current release — plan to re-enroll a node if you need to fully rotate its agent
+  credentials. This gap is tracked in the project's product notes.
+</Callout>
+
+## Authentication and encrypted transport
+
+Login uses email and password (bcrypt-hashed) and issues a JWT. **Deploy only over HTTPS** —
+terminate TLS at the reverse proxy and never expose the raw API/dashboard ports publicly.
+
+<Callout type="warn">
+  The dashboard stores its session JWT in `localStorage`, which is exposed to XSS. Keep
+  frontend dependencies patched, avoid untrusted browser extensions on admin machines, and
+  consider a VPN, SSO gateway, or IP allowlist in front of the dashboard. httpOnly cookie
+  sessions and SSO/OIDC are on the roadmap, not in the current release.
+</Callout>
+
+## Command authorization (RBAC)
+
+Access is permission-based. System roles — `owner`, `admin`, `operator`, `viewer` — are
+seeded from a permission catalog, and you can define custom roles from any subset of it.
+Guards prevent lockout: the last active owner cannot be demoted, suspended, or deleted, and
+you cannot suspend or delete yourself.
+
+## Backup access
+
+Backups stream to object storage through **time-limited presigned URLs**. Agents move the
+bytes but never receive your storage credentials — the Manager holds and encrypts them. Keep
+backup buckets private and enable provider-side encryption.
+
+## Secret storage and rotation
+
+Secrets are envelope-encrypted, so rotating the master key only re-wraps each secret's data
+key — payload ciphertext is untouched. Rotate with a **new key id**:
+
+```bash
+export FLEETDOCK_ENCRYPTION_KEYS_OLD="master-1=<old-secret>"   # keep old key readable
+export FLEETDOCK_ENCRYPTION_KEY="<new-secret>"                 # new primary secret
+export FLEETDOCK_ENCRYPTION_KEY_ID="master-2"                  # new primary id
+make rotate-keys
+# once it reports 0 remaining, drop FLEETDOCK_ENCRYPTION_KEYS_OLD
+```
+
+<Callout type="error">
+  Never reuse a key id with a different secret — existing secrets would become
+  unreadable. Always promote a new id when rotating.
+</Callout>
+
+## Production hardening
+
+Set `FLEETDOCK_ENV=production`. In production mode the API **refuses to start** if
+`FLEETDOCK_JWT_SECRET`, `FLEETDOCK_ENCRYPTION_KEY`, or `FLEETDOCK_ADMIN_PASSWORD` still use
+insecure defaults. The API also applies login rate limiting and security headers, and exposes
+`/healthz` and `/readyz` probes.
+
+## Node isolation and least privilege
+
+- Keep database ports on private networks; do not expose them to the internet.
+- Use least-privilege database users for stored admin credentials.
+- Give people `viewer` or `operator` roles rather than `owner` by default.
+- Isolate nodes from one another so an agent compromise does not spread.
+
+## Compromise scenarios
+
+- **Manager compromise** — the largest blast radius: an attacker could reach every stored
+  credential and command every agent. Restrict access and monitor operations.
+- **Agent compromise** — limited to that node's databases and Docker host, but that node's
+  data is exposed. Isolate nodes and use least-privilege users.
+- **Database credential exposure** — bounded by the user's grants; rotate the credential and
+  re-test the connection.
+- **Backup credential exposure** — storage keys are encrypted on the Manager and never given
+  to agents; presigned URLs are time-limited. Rotate keys and keep buckets private.
+
+## Current limitations
+
+- Session JWT is stored in `localStorage` (XSS exposure).
+- No SSO/OIDC or 2FA yet.
+- The agent runs as root via systemd.
+- The control plane connects directly to external database ports; closed-port access
+  (Cloudflare Tunnel / TCP proxy) is on the roadmap.
+- A single worker instance should run per metadata database (no external job locking yet).

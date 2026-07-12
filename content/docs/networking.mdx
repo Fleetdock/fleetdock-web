@@ -1,0 +1,104 @@
+---
+title: Networking
+description: How the Agent and Manager communicate, which ports and directions matter, and how to reach the Manager from VMs like Multipass during local development.
+---
+
+Fleetdock has two distinct network paths: the **agent → Manager** control path and the
+**Manager → database** data path. Getting these right is the most common source of setup
+friction.
+
+## Agent to Manager (outbound)
+
+The agent connects **outbound** to the Manager at `FLEETDOCK_PUBLIC_URL`. It enrolls,
+heartbeats, and polls for operations over that connection — the Manager never dials back to
+the agent to run operations.
+
+- In production, `FLEETDOCK_PUBLIC_URL` should be an **HTTPS** URL on port `443` behind your
+  reverse proxy.
+- It must be reachable from **every** server you connect. Do not use `localhost` unless the
+  agent runs on the same machine as the Manager.
+
+## Manager to database (direct)
+
+For **live database administration** and **external instances**, the control plane connects
+**directly** to the database's host and port:
+
+- **External** instances are reached at their configured host and port.
+- **Managed** instances are reached at their server's address (reported automatically by the
+  agent) on the instance's **published port**.
+
+Ensure the database port is reachable from the host running the Manager (security group /
+firewall rule). Prefer private network paths over the public internet.
+
+## Ports
+
+| Component | Default port | Direction |
+| --------- | ------------ | --------- |
+| Manager API | `8080` (dev) / `443` (prod via proxy) | Agents and browsers → Manager |
+| Dashboard | `3000` (dev) / `443` (prod via proxy) | Browsers → Manager |
+| Metadata PostgreSQL | `5432` | Internal to the Manager only — never public |
+| Database instances | the instance's **published port** | Manager → instance (for live admin/backup) |
+
+## DNS and HTTPS
+
+- Point a DNS record at the Manager host and terminate **TLS** at the reverse proxy.
+- `FLEETDOCK_CORS_ORIGIN` must exactly match the dashboard origin (no wildcards).
+- `NEXT_PUBLIC_API_URL` is baked into the frontend build — rebuild the frontend image when
+  it changes.
+
+See [Manager installation](/docs/manager#https-and-reverse-proxy) for a Caddy example.
+
+## Firewalls and NAT
+
+- Allow inbound `443` to the reverse proxy; deny direct access to `8080`, `3000`, and `5432`.
+- Because the agent connects outbound, agents behind NAT generally work without inbound
+  rules — but the database ports the Manager needs for live admin/backups must be reachable
+  from the Manager.
+
+## Private networks and public IP
+
+You do not need a public IP on every database server. What matters is that:
+
+1. Each server can reach `FLEETDOCK_PUBLIC_URL`.
+2. The Manager can reach the database ports it administers.
+
+A private network (VPC peering, WireGuard, or a LAN) satisfies both without exposing
+database ports to the internet.
+
+## Local development
+
+For LAN/VM development — for example the Manager on your Mac and an agent in a Ubuntu VM —
+set `FLEETDOCK_PUBLIC_URL` to your host's LAN IP, not `localhost`:
+
+```bash
+FLEETDOCK_PUBLIC_URL=http://192.168.x.x:8080
+```
+
+### Multipass and other VMs
+
+<Callout type="warn">
+  Inside a Multipass (or any) virtual machine, `localhost` points to **the VM itself**, not
+  to your macOS host. An agent in the VM that is told to reach `http://localhost:8080` will
+  try to connect to the VM, not to the Manager running on your host.
+</Callout>
+
+Use the **host-reachable IP** instead of `localhost`. Discover an address the VM can reach:
+
+```bash
+# On macOS — find your host's LAN IP (often on en0):
+ipconfig getifaddr en0
+
+# From inside the VM — confirm the host is reachable on the API port:
+curl -fsS http://<host-ip>:8080/healthz
+```
+
+Then set `FLEETDOCK_PUBLIC_URL=http://<host-ip>:8080` on the Manager and use the same URL in
+the install command. Values like `<host-ip>` are environment-specific — do not hardcode a
+fixed gateway address, as it varies between machines and networks.
+
+## Docker networking
+
+Within the Compose stack, services reach each other by service name (`backend`, `frontend`,
+`postgres`) on the internal Docker network — that is why the Caddy example proxies to
+`backend:8080` and `frontend:3000`. Published ports (`8080`, `3000`) are for access from the
+host; keep them unpublished in production and route through the proxy.

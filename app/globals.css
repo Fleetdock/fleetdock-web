@@ -1,26 +1,180 @@
 @import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
 
+/* Let Tailwind scan Fumadocs UI components for class names. */
+@source "../node_modules/fumadocs-ui/dist/**/*.js";
+
+/* Class-based dark mode (matches next-themes / Fumadocs RootProvider). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Fleetdock brand tokens.
+ * A single restrained palette — cool near-black surfaces with a sky accent —
+ * shared by the marketing site and the documentation portal.
+ */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --background-subtle: #f7f9fb;
+  --foreground: #0b1220;
+  --card: #ffffff;
+  --card-foreground: #0b1220;
+  --elevated: #ffffff;
+  --muted: #eef2f6;
+  --muted-foreground: #55606f;
+  --border: #e3e8ef;
+  --border-strong: #d3dae4;
+  --accent: #0284c7;
+  --accent-foreground: #ffffff;
+  --accent-muted: #e0f2fe;
+  --success: #059669;
+  --warning: #b45309;
+  --danger: #dc2626;
+  --grid-line: rgba(2, 6, 23, 0.05);
+  --ring: #0ea5e9;
 }
 
+.dark {
+  --background: #070b12;
+  --background-subtle: #0b111b;
+  --foreground: #e6edf5;
+  --card: #0c121c;
+  --card-foreground: #e6edf5;
+  --elevated: #111927;
+  --muted: #141c29;
+  --muted-foreground: #8b97a8;
+  --border: #1b2432;
+  --border-strong: #273143;
+  --accent: #38bdf8;
+  --accent-foreground: #04121e;
+  --accent-muted: #0c2739;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #f87171;
+  --grid-line: rgba(148, 163, 184, 0.07);
+  --ring: #38bdf8;
+}
+
+/* Expose brand tokens as Tailwind color/utility classes. */
 @theme inline {
   --color-background: var(--background);
+  --color-background-subtle: var(--background-subtle);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-elevated: var(--elevated);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-muted: var(--accent-muted);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --radius-4xl: 2rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/*
+ * Align the Fumadocs documentation theme with the brand palette so the docs
+ * portal and marketing site read as one product.
+ */
+:root {
+  --color-fd-background: var(--background);
+  --color-fd-foreground: var(--foreground);
+  --color-fd-card: var(--card);
+  --color-fd-popover: var(--elevated);
+  --color-fd-muted: var(--muted);
+  --color-fd-muted-foreground: var(--muted-foreground);
+  --color-fd-border: var(--border);
+  --color-fd-primary: var(--accent);
+  --color-fd-primary-foreground: var(--accent-foreground);
+  --color-fd-accent: var(--muted);
+  --color-fd-accent-foreground: var(--foreground);
+  --color-fd-ring: var(--ring);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv01", "cv03", "ss03";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--accent) 28%, transparent);
+    color: var(--foreground);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  /* Subtle blueprint grid used behind hero and section surfaces. */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
+
+  .bg-dots {
+    background-image: radial-gradient(var(--grid-line) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+
+  /* Fade a decorative layer out toward the edges. */
+  .mask-fade-b {
+    mask-image: linear-gradient(to bottom, black 0%, black 55%, transparent 100%);
+  }
+
+  .mask-radial {
+    mask-image: radial-gradient(ellipse 60% 60% at 50% 40%, black 40%, transparent 100%);
+  }
+
+  .text-gradient {
+    background: linear-gradient(
+      180deg,
+      var(--foreground) 0%,
+      color-mix(in srgb, var(--foreground) 62%, transparent) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
 }

@@ -1,0 +1,142 @@
+---
+title: Getting started
+description: Go from zero to your first managed MariaDB instance — install the Manager, connect a server, and provision a database.
+---
+
+This guide takes you from nothing to a running, backed-up MariaDB instance managed by
+Fleetdock. It uses the real commands from the repository.
+
+## Prerequisites
+
+- A host for the **Manager** with Docker Engine and Docker Compose v2.
+- One or more Linux **database servers** (amd64 or arm64) you can run a command on as root.
+- Outbound internet from those servers (to download the agent and, optionally, back up to
+  object storage).
+
+## 1. Install Fleetdock Manager
+
+The Docker Compose stack includes a local PostgreSQL container, so no external database
+account is required for a first run.
+
+<Steps>
+
+<Step>
+### Clone and configure
+
+```bash
+git clone https://github.com/TajBrains/fleetdock.git
+cd fleetdock
+cp .env.example .env
+./scripts/generate-secrets.sh >> .env
+```
+
+`generate-secrets.sh` appends strong values for `FLEETDOCK_JWT_SECRET`,
+`FLEETDOCK_ENCRYPTION_KEY`, and a bootstrap `FLEETDOCK_ADMIN_PASSWORD`.
+</Step>
+
+<Step>
+### Start the stack
+
+```bash
+docker compose up --build
+```
+
+- Dashboard: [http://localhost:3000](http://localhost:3000)
+- API: [http://localhost:8080](http://localhost:8080)
+
+The API applies its database migrations and bootstraps the admin account on first boot.
+</Step>
+
+</Steps>
+
+<Callout type="info">
+  Prefer published images? Skip local builds with the GHCR overlay:
+  `export FLEETDOCK_RELEASE_TAG=v0.1.0` then
+  `docker compose -f docker-compose.yml -f docker-compose.ghcr.yml up -d`.
+</Callout>
+
+## 2. Create an administrator account
+
+The first admin is bootstrapped from `.env` on first boot. Sign in at the dashboard with
+the `FLEETDOCK_ADMIN_EMAIL` and `FLEETDOCK_ADMIN_PASSWORD` values, then change the
+password on the **Profile** page.
+
+## 3. Add a node and generate a registration token
+
+In the dashboard, open **Servers → Connect server**. Fleetdock generates a **single-use
+registration token** (prefix `fleetr_`) and a ready-to-paste install command.
+
+<Callout type="warn">
+  Registration tokens are single-use and short-lived. Never paste a real token into a
+  chat, an issue, or a public channel. The examples in these docs use a placeholder.
+</Callout>
+
+## 4. Install the Fleetdock Agent
+
+Run the generated command on the database server. Put `sudo` **after** the pipe (before
+`sh`), because the installer must run as root:
+
+```bash
+curl -sSL https://your-control-plane/install.sh | \
+  sudo env FLEETDOCK_URL=https://your-control-plane \
+           FLEETDOCK_TOKEN=<registration-token> sh
+```
+
+The installer downloads the agent binary from the control plane, installs the MariaDB and
+PostgreSQL client tools, ensures Docker is present, and starts a systemd service.
+
+## 5. Verify node connectivity
+
+The server appears in **Servers** within about 30 seconds and then heartbeats every 30
+seconds. On the server itself you can confirm the service is running:
+
+```bash
+systemctl status fleetdock-agent
+```
+
+<Callout type="info">
+  For local VM development, set `FLEETDOCK_PUBLIC_URL` to a host IP the VM can reach (for
+  example `http://192.168.x.x:8080`), not `localhost`. See [Networking](/docs/networking).
+</Callout>
+
+## 6. Provision your first MariaDB instance
+
+Open **Servers → your server → Add instance → Provision new**. Fleetdock launches a
+MariaDB Docker container with a generated root password, a named data volume, and a
+published port. See [Database instances](/docs/database-instances) for the configuration
+fields.
+
+## 7. Configure backups
+
+<Steps>
+
+<Step>
+### Add a backup destination
+
+Under **Destinations**, add an S3, Cloudflare R2, or S3-compatible bucket and run **Test
+bucket**. Storage keys are encrypted at rest.
+</Step>
+
+<Step>
+### Back up a database
+
+From a database's detail page, trigger a manual backup, or create a recurring **Schedule**
+with a retention window.
+</Step>
+
+</Steps>
+
+## 8. Verify database connectivity
+
+Provisioned instances publish a port on the server. Connect with a standard MariaDB client
+using the generated credentials shown in the instance details:
+
+```bash
+mariadb -h <server-address> -P <published-port> -u <user> -p
+```
+
+## Where to go next
+
+- [Core concepts](/docs/concepts) — the vocabulary behind servers, instances, and operations.
+- [Backups](/docs/backups) and [Restore](/docs/restores) — protect and recover data.
+- [Security](/docs/security) — the trust model and hardening steps before production.

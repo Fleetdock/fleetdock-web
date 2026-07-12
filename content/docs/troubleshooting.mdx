@@ -1,0 +1,185 @@
+---
+title: Troubleshooting
+description: Diagnose common Fleetdock problems — agent connectivity, tokens, TLS and DNS, Docker permissions, port conflicts, disk space, and stuck operations.
+---
+
+This page uses only commands that exist in the current release. The Fleetdock Manager has no
+`fleetdock doctor` command; diagnose with the health endpoints, the systemd journal, and
+standard Docker and Linux tools.
+
+<Callout type="info">
+  Start with two signals: the Manager's `GET /readyz`, and the agent's journal
+  (`journalctl -u fleetdock-agent`). Most issues surface in one of them.
+</Callout>
+
+## Agent cannot connect
+
+Check the agent's logs on the server:
+
+```bash
+systemctl status fleetdock-agent
+journalctl -u fleetdock-agent --since "10 min ago"
+```
+
+Confirm the server can reach the Manager on the API port:
+
+```bash
+curl -fsS "$FLEETDOCK_URL/healthz"
+```
+
+If this fails, the problem is network reachability or `FLEETDOCK_PUBLIC_URL` — see the
+sections below.
+
+## Invalid registration token
+
+Registration tokens are **single-use and short-lived**. If enrollment fails with a token
+error, generate a fresh token in **Servers → Connect server** and re-run the install command.
+A token that has already enrolled a server cannot be reused.
+
+## Manager URL is unreachable
+
+The value baked into the install command (`FLEETDOCK_PUBLIC_URL`) must be reachable from the
+server. From the server:
+
+```bash
+curl -fsS https://your-control-plane/healthz
+```
+
+Common causes: `localhost` used from a remote VM (see [Networking](/docs/networking)), a
+firewall blocking `443`, or DNS not resolving.
+
+## TLS certificate error
+
+If the agent or `curl` reports a certificate error, the reverse proxy's certificate is
+invalid, self-signed, or for the wrong hostname. Verify:
+
+```bash
+curl -vI https://your-control-plane/healthz
+```
+
+Use a valid certificate for the exact hostname in `FLEETDOCK_PUBLIC_URL` (Let's Encrypt via
+Caddy is the simplest path — see [Manager installation](/docs/manager)).
+
+## DNS resolution failure
+
+```bash
+getent hosts your-control-plane   # or: nslookup your-control-plane
+```
+
+If the name does not resolve from the server, fix DNS or use an IP address the server can
+reach in `FLEETDOCK_PUBLIC_URL`.
+
+## Docker permission denied
+
+Provisioning requires Docker on the node. The agent runs as root, so check Docker is
+installed and running:
+
+```bash
+docker ps
+systemctl status docker
+```
+
+If Docker is missing, re-run the agent installer (it installs Docker) or install it manually,
+then `systemctl enable --now docker`.
+
+## Database port conflict
+
+If provisioning fails because a port is in use, choose a different published port for the
+instance, or find what holds it:
+
+```bash
+ss -ltnp | grep :<port>
+```
+
+## Insufficient disk space
+
+Backups, restores, and metrics accumulate. Check space on the affected host:
+
+```bash
+df -h
+```
+
+Free space (or prune old backups via retention) and retry the operation. On the Manager
+host, a full disk can also cause `/readyz` failures.
+
+## Backup failure
+
+Open the **Operations** page and read the failed operation's error. Common causes: the
+destination bucket is unreachable or misconfigured (re-run **Test bucket** on the
+**Destinations** page), or the instance is unreachable from the executing side. Configure
+notification channels to be alerted automatically.
+
+## Restore failure
+
+A restore aborts **before** touching the target if the backup checksum does not match. Other
+causes are an unreachable target, insufficient disk, or bad credentials. See
+[Restore failure scenarios](/docs/restores#failure-scenarios).
+
+## Migration failure
+
+A migration is a backup → restore → verify saga. If it fails before the drop step, the source
+is left intact — fix the cause (capacity, connectivity, credentials) and retry. See
+[Migration failure recovery](/docs/migrations#failure-recovery).
+
+## Database instance remains unhealthy
+
+Inspect the container on the node and the operation history:
+
+```bash
+docker ps -a
+docker logs <container-name>
+```
+
+Confirm the instance's published port is reachable from the control plane (required for live
+administration) — see [Networking](/docs/networking).
+
+## Node remains offline
+
+A node is marked `offline` after `FLEETDOCK_HEARTBEAT_TIMEOUT` (default `2m`) without a
+heartbeat. Check the agent service and its connectivity to the Manager:
+
+```bash
+systemctl status fleetdock-agent
+journalctl -u fleetdock-agent -f
+```
+
+## System clock mismatch
+
+A significantly skewed clock can break TLS validation and token handling. Check and correct
+time sync on the server:
+
+```bash
+timedatectl
+```
+
+Enable NTP (`timedatectl set-ntp true`) if the clock is drifting.
+
+## Firewall blocks connection
+
+Two paths must be open: the agent's **outbound** access to `FLEETDOCK_PUBLIC_URL`, and the
+Manager's access to any **database port** it administers. Test reachability:
+
+```bash
+curl -fsS https://your-control-plane/healthz     # from the server → Manager
+nc -vz <server-address> <instance-port>          # from the Manager → instance
+```
+
+## Agent service does not start
+
+```bash
+systemctl status fleetdock-agent
+journalctl -u fleetdock-agent -n 100 --no-pager
+```
+
+Verify the config file exists and is readable, and that the binary is present:
+
+```bash
+cat /etc/fleetdock-agent/agent.env      # FLEETDOCK_URL, FLEETDOCK_TOKEN, FLEETDOCK_STATE_DIR
+ls -l /usr/local/bin/fleetdock-agent
+```
+
+<Callout type="info">
+  Missing first-class diagnostic commands (for example a bundled `doctor` / preflight check)
+  are noted as a product gap. Until they exist, the commands on this page are the supported
+  way to diagnose issues.
+</Callout>

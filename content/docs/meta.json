@@ -1,0 +1,22 @@
+{
+  "title": "Documentation",
+  "root": true,
+  "pages": [
+    "index",
+    "getting-started",
+    "concepts",
+    "---Installation---",
+    "manager",
+    "agents",
+    "nodes",
+    "---Operations---",
+    "database-instances",
+    "backups",
+    "restores",
+    "migrations",
+    "---Platform---",
+    "networking",
+    "security",
+    "troubleshooting"
+  ]
+}

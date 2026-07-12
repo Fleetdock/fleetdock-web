@@ -1,0 +1,75 @@
+---
+title: Backups
+description: Manual and scheduled backups to S3, Cloudflare R2, or S3-compatible storage — retention, status, encryption, and integrity.
+---
+
+Fleetdock backs up databases with `mariadb-dump`, gzips the output, and streams it to object
+storage. Backups are checksummed and tracked as operations.
+
+## Backup destinations
+
+A **destination** is where backups are stored. Fleetdock supports:
+
+- **Amazon S3**
+- **Cloudflare R2**
+- **S3-compatible** buckets
+
+Add a destination under **Destinations**, then use **Test bucket** to verify access.
+
+<Callout type="info">
+  These are the storage providers implemented in the current release. Destination secret
+  keys are encrypted at rest with `FLEETDOCK_ENCRYPTION_KEY`.
+</Callout>
+
+## How backups work
+
+A backup runs `mariadb-dump`, compresses it with gzip, and streams it to the destination
+through a **presigned URL**. The agent moves the bytes but never receives your storage
+credentials — the Manager generates the presigned URL. Fleetdock records the object
+location, a SHA-256 checksum, and the backup size.
+
+## Manual backups
+
+From a database's detail page, trigger a backup. It appears as an operation with status and
+progress on the **Operations** page.
+
+## Scheduled backups
+
+Create recurring backups on the **Schedules** page. Each schedule targets a database, runs
+on a cron cadence, and has a **retention window**. The worker enqueues scheduled backups and
+prunes expired ones.
+
+## Retention
+
+Retention is defined per schedule. When a backup ages out of its window, the worker deletes
+both the object and its metadata so storage does not grow unbounded.
+
+## Backup status and failure behavior
+
+Every backup is a tracked operation. If a backup fails, the operation records the error, and
+— if you have configured notification channels — Fleetdock notifies you automatically.
+Configure email, Slack, or webhook channels on the **Notifications** page.
+
+## Backup encryption
+
+Fleetdock encrypts **credentials and destination keys** at rest with envelope encryption.
+Object-level encryption of the backup contents in the bucket is provided by your storage
+provider — enable bucket encryption and keep buckets private. Presigned URLs are
+time-limited.
+
+## Downloading and deleting backups
+
+Backups are listed per database. You can remove a backup, which deletes its stored object and
+metadata. Scheduled backups are also pruned automatically by retention.
+
+## Verifying backup integrity
+
+Each backup stores a SHA-256 checksum. Restores verify that checksum **before** touching the
+target (see [Restore](/docs/restores)), so a corrupted artifact is caught before it can
+overwrite a database.
+
+<Callout type="warn">
+  Fleetdock does not currently perform a scheduled, standalone "test restore" of backups.
+  Periodically restore a backup into a throwaway instance to confirm your recovery path end
+  to end.
+</Callout>

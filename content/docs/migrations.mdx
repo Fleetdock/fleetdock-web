@@ -1,0 +1,92 @@
+---
+title: Migration
+description: Move or copy a database to another instance or server with a backup, restore, and verify saga — prerequisites, downtime, and failure recovery.
+---
+
+A **migration** relocates or copies a database to another instance, potentially on another
+server. Fleetdock runs it as a background **saga**: backup → restore → verify → optionally
+drop the source.
+
+## Copy vs move
+
+Start a migration from a database's detail page (**Move**) and watch it on the **Moves**
+page.
+
+- Leave **drop source** unticked to make a **copy** — the original stays in place.
+- Tick **drop source** to make a true **move** — the source is dropped after a successful,
+  verified restore (a cutover).
+
+## How the saga works
+
+<Steps>
+
+<Step>
+### Backup
+Fleetdock takes a backup of the source database.
+</Step>
+
+<Step>
+### Restore
+It restores that backup into the destination instance and database name.
+</Step>
+
+<Step>
+### Verify
+It verifies the backup's SHA-256 checksum before writing, then counts restored tables.
+</Step>
+
+<Step>
+### Optional drop
+If you chose to move (not copy), the source database is dropped after verification.
+</Step>
+
+</Steps>
+
+## Prerequisites
+
+- The **destination instance** exists and is reachable from the executing side.
+- The destination node has enough **disk capacity** for the copied data.
+- Valid credentials for both source and destination.
+
+## Destination capacity
+
+Confirm the destination node has headroom before starting — Fleetdock reports node CPU,
+memory, and disk but does not currently block a migration on insufficient capacity.
+
+## Credential handling and endpoints
+
+The migrated database gets its own connection endpoint on the destination instance (host and
+published port). **Applications are not repointed automatically** — after a move, update your
+application's connection settings to the new endpoint and credentials.
+
+## Downtime
+
+<Callout type="warn">
+  Migrations are **not zero-downtime**. The copy is taken from a backup at a point in time,
+  so writes to the source after the backup are not carried over. For a clean cutover, stop
+  writes to the source (or accept the backup as the consistency point) before dropping it and
+  switching applications to the destination.
+</Callout>
+
+## Validation
+
+The verify step (checksum + restored table count) gives you a concrete success signal before
+any source data is dropped. Review the operation on the **Moves** / **Operations** page.
+
+## Cleanup
+
+For a **copy**, remove the source manually if and when you no longer need it. For a **move**,
+the source database is dropped as part of the saga; the source instance and node remain.
+
+## Failure recovery
+
+<Callout type="info">
+  If a migration fails before the drop step, the source database is left untouched — retry
+  after fixing the cause (capacity, connectivity, or credentials). Because the source is only
+  dropped **after** a verified restore, a failed copy or restore does not destroy your source
+  data.
+</Callout>
+
+Detailed, step-by-step migration failure recovery is still being expanded in the product
+documentation; see [Restore failure scenarios](/docs/restores#failure-scenarios) for the
+restore phase, which is the same machinery the migration uses.

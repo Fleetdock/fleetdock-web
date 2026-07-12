@@ -1,0 +1,101 @@
+---
+title: Core concepts
+description: The vocabulary behind Fleetdock — Manager, Agent, Node, Instance, Database, Backup, Restore, Migration, Operation, and more.
+---
+
+Fleetdock uses a small, consistent vocabulary. Understanding these terms makes the rest of
+the documentation — and the dashboard — easier to follow.
+
+## Manager
+
+The **Fleetdock Manager** is the control plane. It serves the dashboard and API, runs the
+operations worker, and stores all fleet metadata in PostgreSQL. It orchestrates work but
+never opens a shell on a node — it enqueues operations for agents to execute.
+
+## Agent
+
+The **Fleetdock Agent** is a lightweight Go service installed on each database node. It
+enrolls with a single-use registration token, authenticates with its own bearer token,
+heartbeats health every 30 seconds, and polls for operations to run locally. It exists so
+the Manager can act on a node without holding SSH access to it.
+
+## Node (server)
+
+A **node** is a host running the agent. Fleetdock tracks each node's status, OS, memory,
+disk, Docker availability, and database engine version. A node with no heartbeat for two
+minutes is flipped to `offline`.
+
+## Instance
+
+An **instance** is a database server process. There are two kinds:
+
+- **Managed** — runs on one of your nodes; operations are executed by that node's agent
+  against `127.0.0.1`. A managed instance is either **provisioned** by Fleetdock (a MariaDB
+  Docker container it launches) or **registered** (pointing at a MariaDB already running on
+  the node).
+- **External** — a reachable database you already host elsewhere; the control plane
+  connects to it directly.
+
+## Database
+
+A **database** is a logical database on an instance. When the instance has admin
+credentials, creating a database physically creates it via an operation; otherwise it is a
+metadata-only registration. Databases can be locked, unlocked, and soft-deleted with a
+seven-day recovery window.
+
+## Database engine
+
+The **engine** identifies the database technology. Provisioning targets MariaDB; live
+administration and external instances also support MySQL and PostgreSQL through a
+pluggable engine layer.
+
+## Operation
+
+An **operation** is any asynchronous action — create or drop a database, backup, restore,
+import, or connection test — tracked as a job with status, progress, and errors. Managed
+-instance jobs are claimed by the node's agent; external-instance jobs run on the
+Manager's built-in worker. Every operation is visible on the **Operations** page.
+
+## Backup and destination
+
+A **backup** is a point-in-time dump of a database (`mariadb-dump`, gzipped, checksummed).
+A **destination** is the S3, Cloudflare R2, or S3-compatible bucket a backup is streamed
+to. Storage keys — and instance passwords — are envelope-encrypted at rest.
+
+## Restore
+
+A **restore** writes a backup's contents into a target database. Restores verify the
+backup artifact's checksum before touching the target and report the restored table count.
+
+## Migration (move)
+
+A **migration** relocates or copies a database to another instance or server. It runs as a
+saga: backup → restore → verify → optionally drop the source. Leaving the source in place
+makes it a copy; dropping it makes it a true move.
+
+## Credential
+
+A **credential** is a database username and password (and its grants). Fleetdock can
+create, view, and drop database users and grants for MariaDB, MySQL, and PostgreSQL.
+Instance admin credentials are stored encrypted.
+
+## Storage and capacity
+
+**Storage** refers to the data volumes backing instances and the object storage holding
+backups. **Capacity** is the CPU, memory, and disk headroom on each node, reported by
+heartbeats and charted over time.
+
+## Health status
+
+**Health status** reflects whether a node is online and whether an instance and its
+databases are reachable and responsive. Node status and instance health drive the overview
+dashboard and alerting.
+
+## How they relate
+
+```text
+Manager ──enqueues──▶ Operation ──claimed by──▶ Agent ──runs on──▶ Node
+                                                                   └─ Instance ─ Database
+Backup ──streamed to──▶ Destination (S3 / R2)
+Migration = Backup ▶ Restore ▶ Verify ▶ (optional) Drop source
+```

@@ -1,0 +1,120 @@
+---
+title: Agent installation
+description: Install, configure, and operate the Fleetdock Agent on a database node — one command to enroll, plus service management, logs, and uninstall.
+---
+
+The **Fleetdock Agent** runs on each database node. It enrolls with the Manager, sends
+health heartbeats, and executes approved operations locally.
+
+## Supported operating systems
+
+- **Linux only**, on `amd64` (x86_64) or `arm64` (aarch64).
+- Common distributions are supported; the installer detects `apt`, `dnf`, `yum`, or `apk`
+  to install database client tools.
+
+## Prerequisites
+
+- Root access on the server (the installer writes a systemd unit and `/usr/local/bin`).
+- Network reachability to the Manager's `FLEETDOCK_PUBLIC_URL`.
+- Docker is required only for **provisioning** new instances — the installer installs it
+  automatically if it is missing.
+
+## Install command
+
+Generate a registration token in the dashboard (**Servers → Connect server**), then run
+the generated command on the server. Place `sudo` after the pipe, before `sh`:
+
+```bash
+curl -sSL https://your-control-plane/install.sh | \
+  sudo env FLEETDOCK_URL=https://your-control-plane \
+           FLEETDOCK_TOKEN=<registration-token> sh
+```
+
+<Callout type="warn">
+  Never share a real registration token. Tokens are single-use and short-lived; the
+  `<registration-token>` above is a placeholder (real tokens use the `fleetr_` prefix).
+</Callout>
+
+## What the installer does
+
+1. Downloads the agent binary from `FLEETDOCK_URL/agent/v1/binary/linux/<arch>` to
+   `/usr/local/bin/fleetdock-agent`.
+2. Installs MariaDB and PostgreSQL client tools (used for backups and restores).
+3. Ensures Docker is installed and enabled (for provisioning).
+4. Writes configuration to `/etc/fleetdock-agent/agent.env` (mode `600`).
+5. Installs and starts the `fleetdock-agent` systemd service.
+
+## Registration
+
+On first start, the agent uses the registration token to enroll and receives its own
+long-lived **agent bearer token** (prefix `fleeta_`), which it stores in its state
+directory. The node appears in the dashboard within about 30 seconds and then heartbeats
+every 30 seconds.
+
+## Configuration file
+
+`/etc/fleetdock-agent/agent.env`:
+
+```ini
+FLEETDOCK_URL=https://your-control-plane
+FLEETDOCK_TOKEN=<registration-token>
+FLEETDOCK_STATE_DIR=/var/lib/fleetdock-agent
+```
+
+The state directory (`/var/lib/fleetdock-agent`) holds the enrolled agent token. Protect
+its file permissions and restrict backup access to it.
+
+## Service management
+
+```bash
+systemctl status fleetdock-agent      # current status
+systemctl restart fleetdock-agent     # restart the agent
+systemctl stop fleetdock-agent        # stop the agent
+systemctl enable --now fleetdock-agent # enable and start
+```
+
+## Logs
+
+The agent logs to the systemd journal:
+
+```bash
+journalctl -u fleetdock-agent -f          # follow live
+journalctl -u fleetdock-agent --since "10 min ago"
+```
+
+## Update
+
+Re-run the install command from the dashboard with a fresh token, or replace the binary
+and restart:
+
+```bash
+curl -fsSL https://your-control-plane/agent/v1/binary/linux/amd64 \
+  -o /usr/local/bin/fleetdock-agent
+chmod +x /usr/local/bin/fleetdock-agent
+systemctl restart fleetdock-agent
+```
+
+<Callout type="info">
+  The exact agent update workflow is still being finalized upstream. Until a dedicated
+  update path is documented, replacing the binary and restarting the service is the
+  reliable approach.
+</Callout>
+
+## Uninstall
+
+```bash
+systemctl disable --now fleetdock-agent
+rm -f /etc/systemd/system/fleetdock-agent.service
+systemctl daemon-reload
+rm -f /usr/local/bin/fleetdock-agent
+rm -rf /etc/fleetdock-agent /var/lib/fleetdock-agent
+```
+
+Then remove the server from the dashboard so it no longer appears in the fleet.
+
+## Required permissions
+
+The agent currently runs as **root** via systemd. It needs root to manage Docker
+containers and volumes for provisioning and to run the database client tools. Treat any
+node running the agent as a host that can act on its own databases. See
+[Security](/docs/security) for the trust model.
