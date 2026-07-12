@@ -14,7 +14,7 @@ const operations = [
   {
     icon: Boxes,
     title: "Provision",
-    body: "Create isolated MariaDB instances with a generated root password, a named data volume, and a published port — launched as a Docker container on a connected server.",
+    body: "Launch isolated MariaDB, MySQL, or PostgreSQL instances with a generated root password, a named data volume, and a published port — as a Docker container on a connected server.",
     href: "/docs/database-instances",
   },
   {
@@ -26,7 +26,7 @@ const operations = [
   {
     icon: DatabaseBackup,
     title: "Back up",
-    body: "Run manual or scheduled backups (mariadb-dump, gzipped, checksummed) streamed to S3, Cloudflare R2, or any S3-compatible bucket with retention.",
+    body: "Run manual or scheduled backups with each engine's native dump tool — gzipped and checksummed — streamed to S3, Cloudflare R2, or any S3-compatible bucket with retention.",
     href: "/docs/backups",
   },
   {

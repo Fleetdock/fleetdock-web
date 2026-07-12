@@ -44,7 +44,7 @@ const flow = [
   },
   {
     title: "Backups & restores",
-    body: "Data is streamed with mariadb-dump and gzip to object storage through time-limited presigned URLs. Agents move the bytes but never hold your storage credentials.",
+    body: "Data is streamed with each engine's native dump tool and gzip to object storage through time-limited presigned URLs. Agents move the bytes but never hold your storage credentials.",
   },
   {
     title: "Offline detection",

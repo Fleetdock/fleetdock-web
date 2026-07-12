@@ -3,8 +3,9 @@ title: Backups
 description: Manual and scheduled backups to S3, Cloudflare R2, or S3-compatible storage — retention, status, encryption, and integrity.
 ---
 
-Fleetdock backs up databases with `mariadb-dump`, gzips the output, and streams it to object
-storage. Backups are checksummed and tracked as operations.
+Fleetdock backs up databases with each engine's native logical dump tool — `mariadb-dump`
+(or `mysqldump`) for MariaDB and MySQL, and `pg_dump` for PostgreSQL — gzips the output, and
+streams it to object storage. Backups are checksummed and tracked as operations.
 
 ## Backup destinations
 
@@ -23,10 +24,11 @@ Add a destination under **Destinations**, then use **Test bucket** to verify acc
 
 ## How backups work
 
-A backup runs `mariadb-dump`, compresses it with gzip, and streams it to the destination
-through a **presigned URL**. The agent moves the bytes but never receives your storage
-credentials — the Manager generates the presigned URL. Fleetdock records the object
-location, a SHA-256 checksum, and the backup size.
+A backup runs the engine's native dump command (`mariadb-dump`/`mysqldump` or `pg_dump`),
+compresses it with gzip, and streams it to the destination through a **presigned URL**. The
+agent moves the bytes but never receives your storage credentials — the Manager generates
+the presigned URL. Fleetdock records the object location, a SHA-256 checksum, and the backup
+size.
 
 ## Manual backups
 

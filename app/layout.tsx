@@ -28,6 +28,8 @@ export const metadata: Metadata = {
     "database control plane",
     "self-hosted databases",
     "MariaDB management",
+    "MySQL management",
+    "PostgreSQL management",
     "database fleet",
     "database backups",
     "database migration",

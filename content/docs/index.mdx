@@ -26,19 +26,22 @@ operations locally.
 
 ## Database engine support
 
-Fleetdock focuses on MariaDB, and also administers MySQL and PostgreSQL:
+Fleetdock supports **MariaDB, MySQL, and PostgreSQL** today, as first-class engines:
 
-- **Provisioning** launches new **MariaDB** instances as isolated Docker containers on a
-  connected server.
-- **Registered and external instances** — databases you already run — are supported for
-  **MariaDB, MySQL, and PostgreSQL**, including live database administration (users,
-  grants, tables, and a SQL console).
+- **Provisioning** launches new MariaDB, MySQL, or PostgreSQL instances as isolated Docker
+  containers on a connected server.
+- **Registered and external instances** — databases you already run — are supported for all
+  three engines.
+- **Live administration, backups, restores, and migrations** work across all three, using
+  each engine's native tools (for example `pg_dump` for PostgreSQL and `mariadb-dump` for
+  MariaDB/MySQL).
+
+More engines can be added through a pluggable engine layer.
 
 <Callout type="info">
-  Other engines such as Redis are not supported. Engine support reflects what
-  the current release implements; see the
-  [roadmap](https://github.com/Fleetdock/fleetdock/blob/main/ROADMAP.md) for
-  what is planned.
+  Engine support reflects what the current release implements. Engines such as Redis are not
+  supported yet; see the
+  [roadmap](https://github.com/Fleetdock/fleetdock/blob/main/ROADMAP.md) for what is planned.
 </Callout>
 
 ## Who it is for
@@ -65,9 +68,9 @@ multiple servers, including:
 ```text
 Fleetdock Manager  (control plane: UI, API, worker, Postgres metadata)
         │
-        ├── Fleetdock Agent ── Database Node 1 ── MariaDB A, MariaDB B
-        ├── Fleetdock Agent ── Database Node 2 ── MariaDB C, MariaDB D
-        └── Fleetdock Agent ── Database Node 3 ── MariaDB E
+        ├── Fleetdock Agent ── Database Node 1 ── MariaDB, PostgreSQL
+        ├── Fleetdock Agent ── Database Node 2 ── MySQL, MariaDB
+        └── Fleetdock Agent ── Database Node 3 ── PostgreSQL
 ```
 
 The Manager stores metadata (users, servers, encrypted credentials, and job history) in

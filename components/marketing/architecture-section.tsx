@@ -16,7 +16,7 @@ const points = [
   },
   {
     title: "Database nodes",
-    body: "Your own servers. Provisioned MariaDB instances run in isolated Docker containers; the Manager never touches a node except through its agent.",
+    body: "Your own servers. Provisioned MariaDB, MySQL, and PostgreSQL instances run in isolated Docker containers; the Manager never touches a node except through its agent.",
   },
 ];
 

@@ -1,37 +1,41 @@
 ---
 title: Database instances
-description: Provision, register, and manage MariaDB instances — configuration, lifecycle, credentials, logs, and connecting external applications.
+description: Provision, register, and manage MariaDB, MySQL, and PostgreSQL instances — configuration, lifecycle, credentials, logs, and connecting external applications.
 ---
 
-An **instance** is a database server process that Fleetdock manages. This page covers
-provisioning new instances, the instance lifecycle, and connecting to them.
+An **instance** is a database server process that Fleetdock manages. Fleetdock supports
+**MariaDB, MySQL, and PostgreSQL** instances. This page covers provisioning new instances,
+the instance lifecycle, and connecting to them.
 
 ## Managed vs external instances
 
 - **Managed** instances run on your nodes. They are either **provisioned** by Fleetdock (a
-  MariaDB Docker container it launches) or **registered** (an existing MariaDB on the node).
-  Operations run through that node's agent against `127.0.0.1`.
+  database Docker container it launches) or **registered** (an existing database on the
+  node). Operations run through that node's agent against `127.0.0.1`.
 - **External** instances are databases you already host elsewhere. The control plane
   connects to them directly and can **import** their existing databases.
 
-## Provisioning a MariaDB instance
+## Provisioning a database instance
 
-Open **Servers → your server → Add instance → Provision new**. Fleetdock launches a MariaDB
-Docker container on the node.
+Open **Servers → your server → Add instance → Provision new**. Fleetdock launches a database
+container on the node for the engine you choose — MariaDB, MySQL, or PostgreSQL — with a
+named data volume and a published port.
 
 ### Configuration fields
 
-- **Database version** — the MariaDB image/version to run.
-- **Port assignment** — the port published on the server for client access.
+- **Engine** — MariaDB, MySQL, or PostgreSQL.
+- **Version** — the image version to run (the engine name doubles as the container image).
+- **Port assignment** — the port published on the server for client access (defaults to the
+  engine's standard port: `3306` for MariaDB/MySQL, `5432` for PostgreSQL).
 - **Storage** — a named Docker data volume backing the instance.
-- **Credentials** — a generated root password stored encrypted; you can create additional
-  users and grants afterward.
+- **Credentials** — a generated superuser password stored encrypted; you can create
+  additional users and grants afterward.
 - **Resource limits** — constrain the container's resource usage where supported.
 
 <Callout type="info">
   Provisioning requires Docker on the node. The agent installer installs Docker
-  automatically. Provisioned instances always run MariaDB; MySQL and PostgreSQL are
-  supported as registered or external instances.
+  automatically. All three engines — MariaDB, MySQL, and PostgreSQL — can be provisioned,
+  registered, or connected as external instances.
 </Callout>
 
 ## Registering an existing database
@@ -71,12 +75,28 @@ Operation-level history (create, drop, backup, restore, connection test) is trac
 
 ## Connecting from external applications
 
-Provisioned instances publish a port on the server. Connect with any MariaDB-compatible
-client or application using the published port and the instance credentials:
+Provisioned instances publish a port on the server. Connect with the client for your engine
+using the published port and the instance credentials:
+
+<Tabs items={["MariaDB / MySQL", "PostgreSQL"]}>
+
+<Tab value="MariaDB / MySQL">
 
 ```bash
 mariadb -h <server-address> -P <published-port> -u <user> -p
 ```
+
+</Tab>
+
+<Tab value="PostgreSQL">
+
+```bash
+psql "postgresql://<user>@<server-address>:<published-port>/<database>"
+```
+
+</Tab>
+
+</Tabs>
 
 <Callout type="warn">
   The instance port must be reachable from wherever your application connects — and, for

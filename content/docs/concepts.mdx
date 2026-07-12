@@ -30,9 +30,9 @@ minutes is flipped to `offline`.
 An **instance** is a database server process. There are two kinds:
 
 - **Managed** — runs on one of your nodes; operations are executed by that node's agent
-  against `127.0.0.1`. A managed instance is either **provisioned** by Fleetdock (a MariaDB
-  Docker container it launches) or **registered** (pointing at a MariaDB already running on
-  the node).
+  against `127.0.0.1`. A managed instance is either **provisioned** by Fleetdock (a database
+  Docker container it launches — MariaDB, MySQL, or PostgreSQL) or **registered** (pointing
+  at a database already running on the node).
 - **External** — a reachable database you already host elsewhere; the control plane
   connects to it directly.
 
@@ -45,9 +45,9 @@ seven-day recovery window.
 
 ## Database engine
 
-The **engine** identifies the database technology. Provisioning targets MariaDB; live
-administration and external instances also support MySQL and PostgreSQL through a
-pluggable engine layer.
+The **engine** identifies the database technology. Fleetdock supports **MariaDB, MySQL, and
+PostgreSQL** today for provisioning, administration, backups, restores, and migration,
+through a pluggable engine layer that more engines can be added to later.
 
 ## Operation
 

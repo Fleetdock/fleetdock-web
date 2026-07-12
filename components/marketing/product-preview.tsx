@@ -31,8 +31,8 @@ const nodes = [
 
 const instances = [
   { name: "customer-001", engine: "MariaDB 11.4", health: "healthy" },
-  { name: "customer-002", engine: "MariaDB 11.4", health: "healthy" },
-  { name: "customer-003", engine: "MariaDB 11.4", health: "degraded" },
+  { name: "customer-002", engine: "PostgreSQL 16", health: "healthy" },
+  { name: "customer-003", engine: "MySQL 8.4", health: "degraded" },
 ] as const;
 
 const operations = [

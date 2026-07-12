@@ -2,9 +2,9 @@ import { Server, Database, Cpu } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const managerNodes = [
-  { name: "db-node-eu-01", instances: ["MariaDB A", "MariaDB B"] },
-  { name: "db-node-eu-02", instances: ["MariaDB C", "MariaDB D"] },
-  { name: "db-node-eu-03", instances: ["MariaDB E"] },
+  { name: "db-node-eu-01", instances: ["MariaDB", "PostgreSQL"] },
+  { name: "db-node-eu-02", instances: ["MySQL", "MariaDB"] },
+  { name: "db-node-eu-03", instances: ["PostgreSQL"] },
 ];
 
 function NodeCard({

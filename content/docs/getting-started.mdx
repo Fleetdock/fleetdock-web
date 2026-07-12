@@ -1,10 +1,11 @@
 ---
 title: Getting started
-description: Go from zero to your first managed MariaDB instance — install the Manager, connect a server, and provision a database.
+description: Go from zero to your first managed database instance — install the Manager, connect a server, and provision MariaDB, MySQL, or PostgreSQL.
 ---
 
-This guide takes you from nothing to a running, backed-up MariaDB instance managed by
-Fleetdock. It uses the real commands from the repository.
+This guide takes you from nothing to a running, backed-up database instance managed by
+Fleetdock. It uses the real commands from the repository. The example provisions MariaDB;
+the same steps apply to MySQL and PostgreSQL.
 
 ## Prerequisites
 
@@ -103,12 +104,12 @@ systemctl status fleetdock-agent
   [Networking](/docs/networking).
 </Callout>
 
-## 6. Provision your first MariaDB instance
+## 6. Provision your first database instance
 
-Open **Servers → your server → Add instance → Provision new**. Fleetdock launches a
-MariaDB Docker container with a generated root password, a named data volume, and a
-published port. See [Database instances](/docs/database-instances) for the configuration
-fields.
+Open **Servers → your server → Add instance → Provision new** and pick an engine — MariaDB,
+MySQL, or PostgreSQL. Fleetdock launches a database container with a generated superuser
+password, a named data volume, and a published port. See
+[Database instances](/docs/database-instances) for the configuration fields.
 
 ## 7. Configure backups
 
@@ -134,11 +135,15 @@ with a retention window.
 
 ## 8. Verify database connectivity
 
-Provisioned instances publish a port on the server. Connect with a standard MariaDB client
-using the generated credentials shown in the instance details:
+Provisioned instances publish a port on the server. Connect with your engine's client using
+the generated credentials shown in the instance details:
 
 ```bash
+# MariaDB / MySQL
 mariadb -h <server-address> -P <published-port> -u <user> -p
+
+# PostgreSQL
+psql "postgresql://<user>@<server-address>:<published-port>/<database>"
 ```
 
 ## Where to go next

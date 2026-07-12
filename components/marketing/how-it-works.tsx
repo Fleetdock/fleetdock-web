@@ -15,12 +15,12 @@ const steps = [
   },
   {
     title: "Install the Fleetdock Agent",
-    body: "Run one curl command on the server. The agent enrolls, installs the MariaDB client tools, and appears within about 30 seconds.",
+    body: "Run one curl command on the server. The agent enrolls, installs the database client tools, and appears within about 30 seconds.",
     href: "/docs/agents",
   },
   {
-    title: "Provision a MariaDB instance",
-    body: "Launch a new instance in an isolated container, or register a database the server already runs.",
+    title: "Provision a database instance",
+    body: "Launch a new MariaDB, MySQL, or PostgreSQL instance in an isolated container, or register a database the server already runs.",
     href: "/docs/database-instances",
   },
   {
