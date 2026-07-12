@@ -6,7 +6,7 @@ description: Fleetdock's trust model — Manager and Agent privileges, tokens, e
 Fleetdock holds credentials for your entire database fleet, so its security model is
 explicit — including the boundaries it does not yet cover. Read this before exposing the
 control plane. To report a vulnerability, see the
-[security policy](https://github.com/TajBrains/fleetdock/blob/main/SECURITY.md).
+[security policy](https://github.com/Fleetdock/fleetdock/blob/main/SECURITY.md).
 
 ## Trust boundaries
 
@@ -51,16 +51,17 @@ credentials so a leak cannot exceed its grants.
 
 Fleetdock uses three token types, each with a display prefix:
 
-| Token | Prefix | Purpose | Lifecycle |
-| ----- | ------ | ------- | --------- |
-| Registration token | `fleetr_` | Enroll a new agent | Single-use, short-lived |
-| Agent bearer token | `fleeta_` | Ongoing agent authentication | Issued on enrollment, stored on the node |
-| API token | `fleetd_` | Automation / CI access | Created, listed, and revoked in the dashboard |
+| Token              | Prefix    | Purpose                      | Lifecycle                                     |
+| ------------------ | --------- | ---------------------------- | --------------------------------------------- |
+| Registration token | `fleetr_` | Enroll a new agent           | Single-use, short-lived                       |
+| Agent bearer token | `fleeta_` | Ongoing agent authentication | Issued on enrollment, stored on the node      |
+| API token          | `fleetd_` | Automation / CI access       | Created, listed, and revoked in the dashboard |
 
 <Callout type="warn">
-  Never share a real registration token or paste one into a public channel. Because the
-  agent's `fleeta_` token is stored on disk in the agent state directory, protect that
-  directory's permissions and restrict backup access to it.
+  Never share a real registration token or paste one into a public channel.
+  Because the agent's `fleeta_` token is stored on disk in the agent state
+  directory, protect that directory's permissions and restrict backup access to
+  it.
 </Callout>
 
 ### Creating, expiring, and revoking tokens
@@ -71,9 +72,10 @@ tokens (but not agent tokens). Suspending a user account stops its sessions and 
 working immediately.
 
 <Callout type="info">
-  Explicit **revocation of an issued agent registration/bearer token** is limited in the
-  current release — plan to re-enroll a node if you need to fully rotate its agent
-  credentials. This gap is tracked in the project's product notes.
+  Explicit **revocation of an issued agent registration/bearer token** is
+  limited in the current release — plan to re-enroll a node if you need to fully
+  rotate its agent credentials. This gap is tracked in the project's product
+  notes.
 </Callout>
 
 ## Authentication and encrypted transport
@@ -82,10 +84,11 @@ Login uses email and password (bcrypt-hashed) and issues a JWT. **Deploy only ov
 terminate TLS at the reverse proxy and never expose the raw API/dashboard ports publicly.
 
 <Callout type="warn">
-  The dashboard stores its session JWT in `localStorage`, which is exposed to XSS. Keep
-  frontend dependencies patched, avoid untrusted browser extensions on admin machines, and
-  consider a VPN, SSO gateway, or IP allowlist in front of the dashboard. httpOnly cookie
-  sessions and SSO/OIDC are on the roadmap, not in the current release.
+  The dashboard stores its session JWT in `localStorage`, which is exposed to
+  XSS. Keep frontend dependencies patched, avoid untrusted browser extensions on
+  admin machines, and consider a VPN, SSO gateway, or IP allowlist in front of
+  the dashboard. httpOnly cookie sessions and SSO/OIDC are on the roadmap, not
+  in the current release.
 </Callout>
 
 ## Command authorization (RBAC)

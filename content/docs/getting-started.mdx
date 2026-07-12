@@ -24,7 +24,7 @@ account is required for a first run.
 ### Clone and configure
 
 ```bash
-git clone https://github.com/TajBrains/fleetdock.git
+git clone https://github.com/Fleetdock/fleetdock.git
 cd fleetdock
 cp .env.example .env
 ./scripts/generate-secrets.sh >> .env
@@ -32,6 +32,7 @@ cp .env.example .env
 
 `generate-secrets.sh` appends strong values for `FLEETDOCK_JWT_SECRET`,
 `FLEETDOCK_ENCRYPTION_KEY`, and a bootstrap `FLEETDOCK_ADMIN_PASSWORD`.
+
 </Step>
 
 <Step>
@@ -45,14 +46,15 @@ docker compose up --build
 - API: [http://localhost:8080](http://localhost:8080)
 
 The API applies its database migrations and bootstraps the admin account on first boot.
+
 </Step>
 
 </Steps>
 
 <Callout type="info">
-  Prefer published images? Skip local builds with the GHCR overlay:
-  `export FLEETDOCK_RELEASE_TAG=v0.1.0` then
-  `docker compose -f docker-compose.yml -f docker-compose.ghcr.yml up -d`.
+  Prefer published images? Skip local builds with the GHCR overlay: `export
+  FLEETDOCK_RELEASE_TAG=v0.1.0` then `docker compose -f docker-compose.yml -f
+  docker-compose.ghcr.yml up -d`.
 </Callout>
 
 ## 2. Create an administrator account
@@ -67,8 +69,9 @@ In the dashboard, open **Servers → Connect server**. Fleetdock generates a **s
 registration token** (prefix `fleetr_`) and a ready-to-paste install command.
 
 <Callout type="warn">
-  Registration tokens are single-use and short-lived. Never paste a real token into a
-  chat, an issue, or a public channel. The examples in these docs use a placeholder.
+  Registration tokens are single-use and short-lived. Never paste a real token
+  into a chat, an issue, or a public channel. The examples in these docs use a
+  placeholder.
 </Callout>
 
 ## 4. Install the Fleetdock Agent
@@ -95,8 +98,9 @@ systemctl status fleetdock-agent
 ```
 
 <Callout type="info">
-  For local VM development, set `FLEETDOCK_PUBLIC_URL` to a host IP the VM can reach (for
-  example `http://192.168.x.x:8080`), not `localhost`. See [Networking](/docs/networking).
+  For local VM development, set `FLEETDOCK_PUBLIC_URL` to a host IP the VM can
+  reach (for example `http://192.168.x.x:8080`), not `localhost`. See
+  [Networking](/docs/networking).
 </Callout>
 
 ## 6. Provision your first MariaDB instance
@@ -115,6 +119,7 @@ fields.
 
 Under **Destinations**, add an S3, Cloudflare R2, or S3-compatible bucket and run **Test
 bucket**. Storage keys are encrypted at rest.
+
 </Step>
 
 <Step>
@@ -122,6 +127,7 @@ bucket**. Storage keys are encrypted at rest.
 
 From a database's detail page, trigger a manual backup, or create a recurring **Schedule**
 with a retention window.
+
 </Step>
 
 </Steps>

@@ -1,7 +1,11 @@
-import { Scale, GitBranch, Heart, Tag } from "lucide-react";
-import { siteConfig } from "@/lib/site-config";
-import { Container, Section, SectionHeading } from "@/components/shared/section";
 import { GitHubIcon } from "@/components/shared/icons";
+import {
+  Container,
+  Section,
+  SectionHeading,
+} from "@/components/shared/section";
+import { siteConfig } from "@/lib/site-config";
+import { GitBranch, Heart, Scale, Tag } from "lucide-react";
 
 const facts = [
   {
@@ -13,7 +17,7 @@ const facts = [
   {
     icon: GitHubIcon,
     label: "Source",
-    value: "TajBrains/fleetdock",
+    value: "Fleetdock/fleetdock",
     href: siteConfig.links.github,
   },
   {
@@ -32,9 +36,12 @@ const facts = [
 
 export function OpenSourceSection() {
   return (
-    <Section id="open-source" className="border-b border-border bg-background-subtle/40">
+    <Section
+      id="open-source"
+      className="bg-background-subtle/40 border-border border-b"
+    >
       <Container>
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-center">
+        <div className="lg:items-center gap-10 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <div className="flex flex-col gap-6">
             <SectionHeading
               eyebrow="Open source"
@@ -43,26 +50,29 @@ export function OpenSourceSection() {
             />
             <div className="flex items-center gap-2">
               <GitBranch className="size-4 text-muted-foreground" aria-hidden />
-              <p className="text-sm text-muted-foreground">
-                A Go control plane and agent with a Next.js dashboard, released in the open.
+              <p className="text-muted-foreground text-sm">
+                A Go control plane and agent with a Next.js dashboard, released
+                in the open.
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="gap-4 grid grid-cols-2">
             {facts.map(({ icon: Icon, label, value, href }) => (
               <a
                 key={label}
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-col gap-2 rounded-xl border border-border bg-card p-5 transition-colors hover:border-border-strong hover:bg-elevated"
+                className="flex flex-col gap-2 bg-card hover:bg-elevated p-5 border border-border hover:border-border-strong rounded-xl transition-colors"
               >
-                <span className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <span className="flex items-center gap-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
                   <Icon className="size-3.5" aria-hidden />
                   {label}
                 </span>
-                <span className="text-base font-semibold text-foreground">{value}</span>
+                <span className="font-semibold text-foreground text-base">
+                  {value}
+                </span>
               </a>
             ))}
           </div>

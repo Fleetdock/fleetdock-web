@@ -3,17 +3,18 @@
  * portal. Every external URL, product string, and navigation entry lives here
  * so nothing is hardcoded across components.
  *
- * Values are sourced from the Fleetdock repository (github.com/TajBrains/fleetdock).
+ * Values are sourced from the Fleetdock repository (github.com/Fleetdock/fleetdock).
  * Where a public URL is not yet confirmed it is left as a clearly-marked
  * placeholder rather than invented.
  */
 
-const GITHUB_REPO = "https://github.com/TajBrains/fleetdock";
+const GITHUB_REPO = "https://github.com/Fleetdock/fleetdock";
 
 // The production domain referenced by the repository README badge.
 // Override at build time with NEXT_PUBLIC_SITE_URL if it changes.
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://fleetdock.dev";
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
+  "https://fleetdock.dev";
 
 export const siteConfig = {
   name: "Fleetdock",
@@ -37,8 +38,8 @@ export const siteConfig = {
   version: "v0.1.0",
 
   maintainer: {
-    name: "TajBrains",
-    url: "https://github.com/TajBrains",
+    name: "Fleetdock",
+    url: "https://github.com/Fleetdock",
     securityEmail: "security@tajbrains.com",
   },
 
@@ -103,7 +104,11 @@ export const footerNav: {
       { title: "GitHub", href: siteConfig.links.github, external: true },
       { title: "Releases", href: siteConfig.links.releases, external: true },
       { title: "Roadmap", href: siteConfig.links.roadmap, external: true },
-      { title: "Contributing", href: siteConfig.links.contributing, external: true },
+      {
+        title: "Contributing",
+        href: siteConfig.links.contributing,
+        external: true,
+      },
       { title: "License", href: siteConfig.links.license, external: true },
     ],
   },

@@ -8,11 +8,11 @@ environment variables it reads, and how to run it safely in production.
 
 ## System requirements
 
-| Fleet size | Suggested host |
-| ---------- | -------------- |
-| 1–10 servers | 2 vCPU, 4 GB RAM |
-| 10–50 servers | 4 vCPU, 8 GB RAM |
-| 50+ servers | Dedicated database + API host |
+| Fleet size    | Suggested host                |
+| ------------- | ----------------------------- |
+| 1–10 servers  | 2 vCPU, 4 GB RAM              |
+| 10–50 servers | 4 vCPU, 8 GB RAM              |
+| 50+ servers   | Dedicated database + API host |
 
 You also need Docker Engine 24+ and Docker Compose v2. For production, a domain name and a
 TLS certificate (Let's Encrypt via Caddy is the simplest path).
@@ -31,11 +31,12 @@ PostgreSQL (Neon, RDS, Cloud SQL, or any PostgreSQL 14+) with `sslmode=require`.
 ### Configure
 
 ```bash
-git clone https://github.com/TajBrains/fleetdock.git
+git clone https://github.com/Fleetdock/fleetdock.git
 cd fleetdock
 cp .env.example .env
 ./scripts/generate-secrets.sh >> .env
 ```
+
 </Step>
 
 <Step>
@@ -53,6 +54,7 @@ bundled Postgres:
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
 ```
+
 </Step>
 
 </Steps>
@@ -61,22 +63,22 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
 
 Variables use the `FLEETDOCK_*` prefix. The most important ones:
 
-| Variable | Default | Notes |
-| -------- | ------- | ----- |
-| `FLEETDOCK_DATABASE_URL` | — | Required. PostgreSQL connection string. |
-| `FLEETDOCK_ENV` | `development` | `production` refuses to start with default secrets. |
-| `FLEETDOCK_HTTP_ADDR` | `:8080` | API listen address. |
-| `FLEETDOCK_JWT_SECRET` | dev default | Set a strong secret in production. |
-| `FLEETDOCK_ENCRYPTION_KEY` | dev default | Encrypts credentials and storage keys at rest. |
-| `FLEETDOCK_PUBLIC_URL` | `http://localhost:8080` | URL agents and installers use to reach the API. |
-| `FLEETDOCK_CORS_ORIGIN` | `http://localhost:3000` | Exact dashboard origin (no wildcards). |
-| `NEXT_PUBLIC_API_URL` | `http://localhost:8080` | Baked into the frontend build. |
-| `FLEETDOCK_HEARTBEAT_TIMEOUT` | `2m` | No heartbeat for this long ⇒ node `offline`. |
-| `FLEETDOCK_METRICS_RETENTION` | `168h` | How long per-heartbeat metrics are kept. |
+| Variable                      | Default                 | Notes                                               |
+| ----------------------------- | ----------------------- | --------------------------------------------------- |
+| `FLEETDOCK_DATABASE_URL`      | —                       | Required. PostgreSQL connection string.             |
+| `FLEETDOCK_ENV`               | `development`           | `production` refuses to start with default secrets. |
+| `FLEETDOCK_HTTP_ADDR`         | `:8080`                 | API listen address.                                 |
+| `FLEETDOCK_JWT_SECRET`        | dev default             | Set a strong secret in production.                  |
+| `FLEETDOCK_ENCRYPTION_KEY`    | dev default             | Encrypts credentials and storage keys at rest.      |
+| `FLEETDOCK_PUBLIC_URL`        | `http://localhost:8080` | URL agents and installers use to reach the API.     |
+| `FLEETDOCK_CORS_ORIGIN`       | `http://localhost:3000` | Exact dashboard origin (no wildcards).              |
+| `NEXT_PUBLIC_API_URL`         | `http://localhost:8080` | Baked into the frontend build.                      |
+| `FLEETDOCK_HEARTBEAT_TIMEOUT` | `2m`                    | No heartbeat for this long ⇒ node `offline`.        |
+| `FLEETDOCK_METRICS_RETENTION` | `168h`                  | How long per-heartbeat metrics are kept.            |
 
 <Callout type="warn">
-  `NEXT_PUBLIC_API_URL` is embedded at image **build time**. Rebuild the frontend image
-  whenever it changes.
+  `NEXT_PUBLIC_API_URL` is embedded at image **build time**. Rebuild the
+  frontend image whenever it changes.
 </Callout>
 
 See `.env.example` in the repository for the full list, including optional SMTP variables
@@ -134,8 +136,9 @@ Migrations run automatically on API start. Confirm `GET /readyz` returns `ready`
 upgrade.
 
 <Callout type="warn">
-  Before upgrading, back up the metadata PostgreSQL database. If a migration has already
-  advanced the schema, roll back by restoring that database, not just the API binary.
+  Before upgrading, back up the metadata PostgreSQL database. If a migration has
+  already advanced the schema, roll back by restoring that database, not just
+  the API binary.
 </Callout>
 
 ## Uninstall
@@ -146,6 +149,7 @@ docker compose down -v       # also delete volumes — destroys the metadata dat
 ```
 
 <Callout type="error">
-  `docker compose down -v` deletes the `postgres_data` volume and permanently removes all
-  Fleetdock metadata. Only run it if you intend to discard the installation.
+  `docker compose down -v` deletes the `postgres_data` volume and permanently
+  removes all Fleetdock metadata. Only run it if you intend to discard the
+  installation.
 </Callout>
