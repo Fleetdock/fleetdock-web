@@ -1,0 +1,51 @@
+---
+title: API reference
+description: Fleetdock Manager HTTP API — authentication, endpoints, schemas, and an interactive playground.
+---
+
+The Fleetdock Manager exposes a REST API for provisioning databases, running backups,
+managing users, and coordinating agents. Endpoints are grouped by resource in the sidebar
+(Health, Auth, Instances, Backups, and so on).
+
+## Base URL
+
+Point requests at your Manager host. In local development the default is:
+
+```text
+http://localhost:8080
+```
+
+In production, use your Manager URL (for example `https://dbm.example.com`).
+
+## Authentication
+
+Most `/v1` routes require a **Bearer token** in the `Authorization` header:
+
+- **JWT** — obtained from `POST /v1/auth/login` with email and password.
+- **API token** — long-lived tokens prefixed with `fleetd_`, created under **Profile → API tokens**.
+
+Agent routes under `/agent/v1` use **agent bearer tokens** prefixed with `fleeta_`.
+
+<Callout type="info">
+  Public routes (health checks, install script, and this documentation) do not require
+  authentication.
+</Callout>
+
+## Interactive playground
+
+Each endpoint page includes a playground where you can send requests. When testing against
+a Manager that does not allow browser CORS, requests are proxied through this site.
+
+Set the server URL in the playground to your Manager before sending authenticated requests.
+
+## OpenAPI spec
+
+The machine-readable spec is available at `GET /openapi.yaml` on any running Manager, and
+is mirrored in the
+[Fleetdock repository](https://github.com/Fleetdock/fleetdock/blob/main/backend/internal/openapi/openapi.yaml).
+
+To refresh the copy used by this site from a local monorepo checkout:
+
+```bash
+pnpm sync:openapi
+```

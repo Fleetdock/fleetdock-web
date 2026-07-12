@@ -1,0 +1,25 @@
+{
+  "title": "API reference",
+  "pages": [
+    "health",
+    "auth",
+    "profile",
+    "users",
+    "tokens",
+    "overview",
+    "servers",
+    "agenttokens",
+    "instances",
+    "databases",
+    "dbadmin",
+    "operations",
+    "backups",
+    "destinations",
+    "schedules",
+    "moves",
+    "notifications",
+    "agent",
+    "install",
+    "docs"
+  ]
+}

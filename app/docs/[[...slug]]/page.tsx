@@ -9,6 +9,7 @@ import {
 import { source } from "@/lib/source";
 import { getMDXComponents } from "@/mdx-components";
 import { siteConfig } from "@/lib/site-config";
+import { OpenAPIPage } from "@/components/api-page";
 
 export default async function Page(props: {
   params: Promise<{ slug?: string[] }>;
@@ -16,6 +17,18 @@ export default async function Page(props: {
   const params = await props.params;
   const page = source.getPage(params.slug);
   if (!page) notFound();
+
+  if (page.type === "openapi") {
+    return (
+      <DocsPage toc={page.data.toc} full>
+        <DocsTitle>{page.data.title}</DocsTitle>
+        <DocsDescription>{page.data.description}</DocsDescription>
+        <DocsBody>
+          <OpenAPIPage {...page.data.getOpenAPIPageProps()} />
+        </DocsBody>
+      </DocsPage>
+    );
+  }
 
   const MDXContent = page.data.body;
 

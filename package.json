@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "fumadocs-mdx && tsc --noEmit",
+    "sync:openapi": "cp ../fleetdock/backend/internal/openapi/openapi.yaml openapi/openapi.yaml",
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
@@ -15,12 +16,14 @@
     "clsx": "^2.1.1",
     "fumadocs-core": "^16.11.3",
     "fumadocs-mdx": "^15.1.0",
+    "fumadocs-openapi": "^11.1.1",
     "fumadocs-ui": "^16.11.3",
     "lucide-react": "^1.24.0",
     "next": "16.2.10",
     "next-themes": "^0.4.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "shiki": "^4.3.1",
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
