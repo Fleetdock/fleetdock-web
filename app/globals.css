@@ -9,50 +9,50 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Fleetdock brand tokens.
- * A single restrained palette — cool near-black surfaces with a sky accent —
- * shared by the marketing site and the documentation portal.
+ * Fleetdock brand tokens — aligned with the product dashboard: a neutral zinc
+ * surface palette with a teal accent, shared by the marketing site and the
+ * documentation portal.
  */
 :root {
   --background: #ffffff;
-  --background-subtle: #f7f9fb;
-  --foreground: #0b1220;
+  --background-subtle: #f6f6f7;
+  --foreground: #0a0a0a;
   --card: #ffffff;
-  --card-foreground: #0b1220;
+  --card-foreground: #0a0a0a;
   --elevated: #ffffff;
-  --muted: #eef2f6;
-  --muted-foreground: #55606f;
-  --border: #e3e8ef;
-  --border-strong: #d3dae4;
-  --accent: #0284c7;
+  --muted: #f4f4f5;
+  --muted-foreground: #6b7280;
+  --border: #e5e7eb;
+  --border-strong: #d4d4d8;
+  --accent: #0f766e;
   --accent-foreground: #ffffff;
-  --accent-muted: #e0f2fe;
-  --success: #059669;
+  --accent-muted: #ccfbf1;
+  --success: #15803d;
   --warning: #b45309;
   --danger: #dc2626;
-  --grid-line: rgba(2, 6, 23, 0.05);
-  --ring: #0ea5e9;
+  --grid-line: rgba(9, 9, 11, 0.05);
+  --ring: #0d9488;
 }
 
 .dark {
-  --background: #070b12;
-  --background-subtle: #0b111b;
-  --foreground: #e6edf5;
-  --card: #0c121c;
-  --card-foreground: #e6edf5;
-  --elevated: #111927;
-  --muted: #141c29;
-  --muted-foreground: #8b97a8;
-  --border: #1b2432;
-  --border-strong: #273143;
-  --accent: #38bdf8;
-  --accent-foreground: #04121e;
-  --accent-muted: #0c2739;
-  --success: #34d399;
+  --background: #09090b;
+  --background-subtle: #101012;
+  --foreground: #fafafa;
+  --card: #101012;
+  --card-foreground: #fafafa;
+  --elevated: #161619;
+  --muted: #161619;
+  --muted-foreground: #a1a1aa;
+  --border: #262629;
+  --border-strong: #3f3f46;
+  --accent: #2dd4bf;
+  --accent-foreground: #042f2a;
+  --accent-muted: #0c2b28;
+  --success: #4ade80;
   --warning: #fbbf24;
   --danger: #f87171;
-  --grid-line: rgba(148, 163, 184, 0.07);
-  --ring: #38bdf8;
+  --grid-line: rgba(161, 161, 170, 0.07);
+  --ring: #2dd4bf;
 }
 
 /* Expose brand tokens as Tailwind color/utility classes. */

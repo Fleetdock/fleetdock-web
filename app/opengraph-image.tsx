@@ -16,12 +16,12 @@ export default function OpengraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "#070b12",
+          background: "#09090b",
           padding: "72px",
-          color: "#e6edf5",
+          color: "#fafafa",
           fontFamily: "sans-serif",
           backgroundImage:
-            "linear-gradient(rgba(148,163,184,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.08) 1px, transparent 1px)",
+            "linear-gradient(rgba(161,161,170,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(161,161,170,0.08) 1px, transparent 1px)",
           backgroundSize: "56px 56px",
         }}
       >
@@ -30,18 +30,18 @@ export default function OpengraphImage() {
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: 6,
+              gap: 7,
               width: 68,
               height: 68,
-              border: "3px solid #e6edf5",
-              borderRadius: 16,
-              padding: "14px 12px",
+              background: "#0f766e",
+              borderRadius: 15,
+              padding: "16px 14px",
               justifyContent: "center",
             }}
           >
-            <div style={{ height: 8, borderRadius: 4, background: "#38bdf8" }} />
-            <div style={{ height: 8, borderRadius: 4, background: "rgba(230,237,245,0.55)" }} />
-            <div style={{ height: 8, borderRadius: 4, background: "rgba(230,237,245,0.3)" }} />
+            <div style={{ height: 7, width: "62%", borderRadius: 4, background: "#ffffff" }} />
+            <div style={{ height: 7, width: "100%", borderRadius: 4, background: "#ffffff" }} />
+            <div style={{ height: 7, width: "78%", borderRadius: 4, background: "#ffffff" }} />
           </div>
           <div style={{ fontSize: 40, fontWeight: 600, letterSpacing: -1 }}>
             {siteConfig.name}
@@ -66,8 +66,8 @@ export default function OpengraphImage() {
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 24, color: "#8b97a8" }}>
-          <span style={{ color: "#38bdf8", fontWeight: 600 }}>Open source</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 24, color: "#a1a1aa" }}>
+          <span style={{ color: "#2dd4bf", fontWeight: 600 }}>Open source</span>
           <span>·</span>
           <span>Self-hosted</span>
           <span>·</span>
