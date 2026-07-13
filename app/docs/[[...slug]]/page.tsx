@@ -10,12 +10,14 @@ import { source } from "@/lib/source";
 import { getMDXComponents } from "@/mdx-components";
 import { siteConfig } from "@/lib/site-config";
 import { OpenAPIPage } from "@/components/api-page";
+import { getPageSlug, resolveDocsSlug } from "@/lib/versions";
 
 export default async function Page(props: {
   params: Promise<{ slug?: string[] }>;
 }) {
   const params = await props.params;
-  const page = source.getPage(params.slug);
+  const { version, slug } = resolveDocsSlug(params.slug);
+  const page = source.getPage(getPageSlug(version, slug));
   if (!page) notFound();
 
   if (page.type === "openapi") {
@@ -51,7 +53,8 @@ export async function generateMetadata(props: {
   params: Promise<{ slug?: string[] }>;
 }): Promise<Metadata> {
   const params = await props.params;
-  const page = source.getPage(params.slug);
+  const { version, slug } = resolveDocsSlug(params.slug);
+  const page = source.getPage(getPageSlug(version, slug));
   if (!page) notFound();
 
   const description = page.data.description ?? siteConfig.description;

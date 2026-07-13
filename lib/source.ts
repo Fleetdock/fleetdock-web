@@ -1,6 +1,7 @@
 import { loader } from "fumadocs-core/source";
 import { docs } from "@/.source/server";
-import { openapi } from "@/lib/openapi";
+import { createVersionedOpenAPISource, openapi } from "@/lib/openapi";
+import { DEFAULT_VERSION } from "@/lib/versions";
 
 /**
  * Combined Fumadocs content source: hand-written MDX docs plus generated
@@ -9,10 +10,7 @@ import { openapi } from "@/lib/openapi";
 export const source = loader(
   {
     docs: docs.toFumadocsSource(),
-    openapi: await openapi.staticSource({
-      baseDir: "api",
-      groupBy: "tag",
-    }),
+    openapi: await createVersionedOpenAPISource(DEFAULT_VERSION),
   },
   {
     baseUrl: "/docs",
