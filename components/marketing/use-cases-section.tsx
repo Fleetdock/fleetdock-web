@@ -24,7 +24,7 @@ export const useCases = [
     title: "Hosting providers",
     summary: "Provision and maintain database instances for clients.",
     detail:
-      "Give each client a dedicated database instance with generated credentials, published ports, and consistent backup policies — provisioned and monitored from a single dashboard.",
+      "Give each client a dedicated database instance with application credentials and stable gateway endpoints — provisioned and monitored from a single dashboard, without publishing raw database ports.",
   },
   {
     icon: Users,

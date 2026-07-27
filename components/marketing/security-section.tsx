@@ -7,6 +7,7 @@ import {
   ScrollText,
   RefreshCw,
   UserCheck,
+  Globe,
   Info,
 } from "lucide-react";
 import { Container, Section, SectionHeading } from "@/components/shared/section";
@@ -33,6 +34,11 @@ const properties = [
     icon: UserCheck,
     title: "Role-based access control",
     body: "Owner, admin, operator, and viewer roles plus custom roles from a permission catalog, with scoped API tokens.",
+  },
+  {
+    icon: Globe,
+    title: "CIDR-gated public access",
+    body: "External database access routes through the Fleetdock Gateway with CIDR allowlists — disabled by default, with application credentials instead of root passwords.",
   },
   {
     icon: ScrollText,
@@ -81,9 +87,9 @@ export function SecuritySection() {
             </h3>
             <p className="text-sm leading-relaxed text-muted-foreground">
               The dashboard stores its session token in <code className="font-mono text-xs">localStorage</code>, so
-              deploy it behind TLS on a trusted network. SSO/OIDC and 2FA are on the roadmap,
-              not yet available. The agent currently runs as root, and the control plane
-              connects directly to external database ports. See the security documentation for
+              deploy it behind TLS on a trusted network.               SSO/OIDC and 2FA are on the roadmap,
+              not yet available. The agent currently runs as root. Gateway TLS is passthrough
+              only in the current MVP. See the security documentation for
               the full trust model and mitigations.
             </p>
           </div>

@@ -75,6 +75,15 @@ Variables use the `FLEETDOCK_*` prefix. The most important ones:
 | `NEXT_PUBLIC_API_URL`         | `http://localhost:8080` | Baked into the frontend build.                      |
 | `FLEETDOCK_HEARTBEAT_TIMEOUT` | `2m`                    | No heartbeat for this long ⇒ node `offline`.        |
 | `FLEETDOCK_METRICS_RETENTION` | `168h`                  | How long per-heartbeat metrics are kept.            |
+| `FLEETDOCK_GATEWAY_ENABLED`   | `false`                 | Enable the Fleetdock Gateway (HAProxy) service.     |
+| `FLEETDOCK_GATEWAY_PUBLIC_HOST` | `gateway.localhost`   | Hostname external apps use to reach the gateway.    |
+| `FLEETDOCK_GATEWAY_PORT_RANGE_START` | `15432`          | First port in the gateway's public port range.      |
+| `FLEETDOCK_GATEWAY_PORT_RANGE_END` | `15481`            | Last port in the gateway's public port range.       |
+| `FLEETDOCK_GATEWAY_DIAG_PORT`  | `15431`                 | Reports the source address the gateway observes. `0` disables. |
+| `FLEETDOCK_GATEWAY_SOURCE_IP_MODE` | `direct`            | `direct` or `proxy-protocol` (behind an L4 load balancer). |
+| `FLEETDOCK_GATEWAY_CONFIG_PATH` | `/var/lib/fleetdock/gateway/haproxy.cfg` | HAProxy config path. |
+| `FLEETDOCK_GATEWAY_MASTER_SOCKET` | `/var/lib/fleetdock/gateway/haproxy-master.sock` | HAProxy master socket for hitless reload. |
+| `FLEETDOCK_GATEWAY_ADMIN_SOCKET` | `/var/lib/fleetdock/gateway/haproxy-admin.sock` | HAProxy stats socket, used to read endpoint health. |
 
 <Callout type="warn">
   `NEXT_PUBLIC_API_URL` is embedded at image **build time**. Rebuild the
@@ -82,7 +91,7 @@ Variables use the `FLEETDOCK_*` prefix. The most important ones:
 </Callout>
 
 See `.env.example` in the repository for the full list, including optional SMTP variables
-for email notifications.
+for email notifications and gateway configuration for [external database access](/docs/external-access).
 
 ## HTTPS and reverse proxy
 

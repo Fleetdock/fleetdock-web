@@ -79,6 +79,20 @@ A **credential** is a database username and password (and its grants). Fleetdock
 create, view, and drop database users and grants for MariaDB, MySQL, and PostgreSQL.
 Instance admin credentials are stored encrypted.
 
+## Endpoint
+
+An **endpoint** describes how to reach a database. Every database has a **private** endpoint
+on its instance (`server.address:port`). When public access is enabled, it also has a
+**public** endpoint through the Fleetdock Gateway (`gateway-host:assigned-port`). The public
+endpoint stays stable across migrations; the gateway routes to the current private backend.
+
+## Application credential
+
+An **application credential** is a scoped database user created for external applications —
+separate from instance root credentials. Passwords are encrypted at rest; connection URLs are
+shown once on create or rotate. Permission profiles (`readonly`, `readwrite`, `admin`) limit
+grants to the database scope.
+
 ## Storage and capacity
 
 **Storage** refers to the data volumes backing instances and the object storage holding

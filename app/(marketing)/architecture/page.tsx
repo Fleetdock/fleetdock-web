@@ -31,6 +31,11 @@ const components = [
     title: "Database instances",
     body: "Managed instances run on your nodes — provisioned as isolated Docker containers or registered from an existing database. External instances are databases you already host elsewhere.",
   },
+  {
+    icon: Radio,
+    title: "Fleetdock Gateway",
+    body: "An optional HAProxy TCP proxy colocated with the Manager. It assigns one stable public port per database, enforces CIDR allowlists, and is reconciled by the control-plane worker.",
+  },
 ];
 
 const flow = [
@@ -41,6 +46,10 @@ const flow = [
   {
     title: "External instances",
     body: "The control plane connects directly to the database host and port. These jobs run on the Manager's built-in worker instead of an agent.",
+  },
+  {
+    title: "External access",
+    body: "Applications outside your private network connect through the Fleetdock Gateway — CIDR-gated TCP proxy with one port per database. Public access is disabled by default; application credentials replace root passwords.",
   },
   {
     title: "Backups & restores",
@@ -73,9 +82,9 @@ export default function ArchitecturePage() {
         <Container>
           <SectionHeading
             eyebrow="Components"
-            title="Three moving parts, clearly separated."
+            title="Core components, clearly separated."
           />
-          <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {components.map(({ icon: Icon, title, body }) => (
               <div
                 key={title}

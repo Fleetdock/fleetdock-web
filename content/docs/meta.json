@@ -16,6 +16,7 @@
     "migrations",
     "---Platform---",
     "networking",
+    "external-access",
     "security",
     "troubleshooting",
     "api"
