@@ -30,6 +30,21 @@ For **live database administration** and **external instances**, the control pla
 Ensure the database port is reachable from the host running the Manager (security group /
 firewall rule). Prefer private network paths over the public internet.
 
+## External applications via Fleetdock Gateway
+
+For applications **outside** your private network, use the **Fleetdock Gateway** (HAProxy)
+instead of publishing database ports directly to the internet. The control plane assigns one
+public TCP port per database, enforces CIDR allowlists at HAProxy, and keeps the endpoint
+stable across migrations.
+
+```text
+External app → gateway.example.com:15432 → HAProxy → server.address:instance.port → Database
+```
+
+Public access is **disabled by default**. Enable it per database from **Connectivity** on the
+database page. See [External database access](/docs/external-access) for setup, application
+credentials, and TLS behavior.
+
 ## Ports
 
 | Component | Default port | Direction |
@@ -38,6 +53,8 @@ firewall rule). Prefer private network paths over the public internet.
 | Dashboard | `3000` (dev) / `443` (prod via proxy) | Browsers → Manager |
 | Metadata PostgreSQL | `5432` | Internal to the Manager only — never public |
 | Database instances | the instance's **published port** | Manager → instance (for live admin/backup) |
+| Fleetdock Gateway | `15432–15481` (configurable range) | External apps → gateway → instance (when public access enabled) |
+| Gateway diagnostic | `15431` (configurable, `0` disables) | Reports the source address the gateway observes, for setting allowlists |
 
 ## DNS and HTTPS
 

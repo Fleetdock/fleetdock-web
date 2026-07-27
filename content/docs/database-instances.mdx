@@ -75,8 +75,12 @@ Operation-level history (create, drop, backup, restore, connection test) is trac
 
 ## Connecting from external applications
 
+How you connect depends on where your application runs.
+
+### Private network (recommended for internal apps)
+
 Provisioned instances publish a port on the server. Connect with the client for your engine
-using the published port and the instance credentials:
+using the server's internal address and the published port:
 
 <Tabs items={["MariaDB / MySQL", "PostgreSQL"]}>
 
@@ -103,6 +107,21 @@ psql "postgresql://<user>@<server-address>:<published-port>/<database>"
   live administration, from the control plane. Keep it on a private network where possible.
   See [Networking](/docs/networking).
 </Callout>
+
+### Public access via Fleetdock Gateway
+
+For applications **outside** your private network, enable **public access** on the database
+page (**Connectivity**). Fleetdock assigns a stable gateway endpoint
+(`gateway.example.com:<port>`) and routes traffic through HAProxy with CIDR enforcement.
+
+<Callout type="info">
+  Public access is **disabled by default**. Do not expose database ports directly to the
+  internet as your primary pattern — use the gateway with application credentials and CIDR
+  allowlists. See [External database access](/docs/external-access).
+</Callout>
+
+Use **application credentials** (not instance root credentials) for external apps. The
+connection URL is shown once on create or rotate.
 
 ## Databases on an instance
 

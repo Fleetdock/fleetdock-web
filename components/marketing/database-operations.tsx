@@ -6,6 +6,7 @@ import {
   RotateCcw,
   ArrowRightLeft,
   KeyRound,
+  Globe,
   ArrowRight,
 } from "lucide-react";
 import { Container, Section, SectionHeading } from "@/components/shared/section";
@@ -44,8 +45,14 @@ const operations = [
   {
     icon: KeyRound,
     title: "Manage credentials",
-    body: "Create, view, and drop database users and grants for MariaDB, MySQL, and PostgreSQL. Instance and storage secrets are encrypted at rest.",
-    href: "/docs/security",
+    body: "Create application credentials with scoped profiles for external apps. Instance and storage secrets are encrypted at rest; public access routes through the Fleetdock Gateway.",
+    href: "/docs/external-access",
+  },
+  {
+    icon: Globe,
+    title: "External access",
+    body: "Expose databases to applications outside your private network through the Fleetdock Gateway — one stable port per database, CIDR allowlists, and disabled by default.",
+    href: "/docs/external-access",
   },
 ];
 

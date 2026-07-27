@@ -55,9 +55,20 @@ memory, and disk but does not currently block a migration on insufficient capaci
 
 ## Credential handling and endpoints
 
-The migrated database gets its own connection endpoint on the destination instance (host and
-published port). **Applications are not repointed automatically** — after a move, update your
-application's connection settings to the new endpoint and credentials.
+Every database has a **private** endpoint on its instance (`server.address:published-port`).
+If **public access** is enabled, it also has a **gateway** endpoint
+(`FLEETDOCK_GATEWAY_PUBLIC_HOST:assigned-port`) that stays stable across migrations — only
+the private backend target changes when you move a database to another server.
+
+**Applications are not repointed automatically.** After a move:
+
+- **Public access enabled** — update credentials if you rotated them; hostname and gateway
+  port stay the same.
+- **Private access only** — update your application's host and port to the destination
+  instance's private endpoint.
+
+See [External database access](/docs/external-access) for gateway setup and application
+credentials.
 
 ## Downtime
 

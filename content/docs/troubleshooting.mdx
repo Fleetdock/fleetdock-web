@@ -133,6 +133,41 @@ docker logs <container-name>
 Confirm the instance's published port is reachable from the control plane (required for live
 administration) — see [Networking](/docs/networking).
 
+## Gateway and external access
+
+If public access is enabled for a database, external applications connect through the
+**Fleetdock Gateway** instead of the instance's published port directly.
+
+| Symptom | Check |
+| ------- | ----- |
+| Endpoint stuck `pending` | `last_error` on the endpoint; the `reconcile_gateway` operation; whether the gateway container is healthy |
+| Endpoint shows `error` | `last_error` names the unreachable `host:port` — can the **gateway container** reach it? |
+| Connection closes immediately after connecting | The CIDR allowlist. This is what a rejection looks like — the gateway accepts the TCP connection, then drops it. |
+| Connection refused from an allowed IP | The address the gateway *observes* is probably not the address you allowlisted — see below |
+| `server does not support SSL, but SSL was required` | The database does not accept TLS — enable it, or recreate the endpoint with `tls_mode=preferred` |
+| Cannot connect externally | DNS for `FLEETDOCK_GATEWAY_PUBLIC_HOST`, host firewall on the port range, and that the range is actually published |
+
+```bash
+# From the machine that will connect — what source address does the gateway see?
+# Allowlist exactly what this prints.
+curl http://gateway.example.com:15431
+
+# Then test reachability of the database's assigned port:
+nc -vz gateway.example.com 15432
+
+# On the Manager host — confirm the gateway is up:
+docker compose ps gateway
+docker compose logs gateway --tail 50
+```
+
+<Callout type="warn">
+  Behind NAT (including Docker Desktop) or an L4 load balancer, the gateway sees the proxy's
+  address rather than your client's, so an otherwise-correct allowlist rejects everyone. The
+  connectivity panel reports rejected-connection counts when this is happening.
+</Callout>
+
+See [External database access](/docs/external-access) for full setup and troubleshooting.
+
 ## Node remains offline
 
 A node is marked `offline` after `FLEETDOCK_HEARTBEAT_TIMEOUT` (default `2m`) without a

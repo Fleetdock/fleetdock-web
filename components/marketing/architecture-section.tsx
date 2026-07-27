@@ -18,6 +18,10 @@ const points = [
     title: "Database nodes",
     body: "Your own servers. Provisioned MariaDB, MySQL, and PostgreSQL instances run in isolated Docker containers; the Manager never touches a node except through its agent.",
   },
+  {
+    title: "Fleetdock Gateway",
+    body: "An optional HAProxy service colocated with the Manager. It exposes stable, CIDR-gated TCP endpoints for external applications — one port per database, with config owned by the control plane.",
+  },
 ];
 
 export function ArchitectureSection() {

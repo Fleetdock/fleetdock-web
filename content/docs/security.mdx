@@ -21,6 +21,9 @@ control plane. To report a vulnerability, see the
       ┌───────────┴────────────┐
  Managed servers          External DBs
  (agent → API, outbound)  (API → host:port, direct)
+                  │
+         Fleetdock Gateway (optional)
+         CIDR-gated TCP proxy → instance ports
 ```
 
 ## Manager privileges
@@ -46,6 +49,23 @@ Docker-level control of its node.
 Instance admin credentials and destination storage keys are **envelope-encrypted** at rest
 with `FLEETDOCK_ENCRYPTION_KEY`. Use **least-privilege** database users for stored admin
 credentials so a leak cannot exceed its grants.
+
+## Gateway and public access
+
+The **Fleetdock Gateway** (HAProxy) exposes databases to external applications through
+dedicated TCP ports with CIDR enforcement at the proxy layer.
+
+- Public access is **disabled by default** — you must explicitly enable it per database.
+- CIDR allowlists are enforced in HAProxy; `0.0.0.0/0` requires an explicit choice (the UI
+  warns).
+- **Application credentials** (scoped users with `readonly`, `readwrite`, or `admin`
+  profiles) are used for external apps — instance root credentials are never exposed for
+  public use.
+- Connectivity changes, credential creation, rotation, and revocation are recorded in the
+  audit log.
+
+See [External database access](/docs/external-access) for setup and TLS behavior (TCP
+passthrough in the current MVP).
 
 ## Tokens and their lifecycle
 
@@ -131,7 +151,8 @@ insecure defaults. The API also applies login rate limiting and security headers
 
 ## Node isolation and least privilege
 
-- Keep database ports on private networks; do not expose them to the internet.
+- Keep database ports on private networks; use the Fleetdock Gateway for external access
+  instead of publishing instance ports directly to the internet.
 - Use least-privilege database users for stored admin credentials.
 - Give people `viewer` or `operator` roles rather than `owner` by default.
 - Isolate nodes from one another so an agent compromise does not spread.
@@ -152,6 +173,5 @@ insecure defaults. The API also applies login rate limiting and security headers
 - Session JWT is stored in `localStorage` (XSS exposure).
 - No SSO/OIDC or 2FA yet.
 - The agent runs as root via systemd.
-- The control plane connects directly to external database ports; closed-port access
-  (Cloudflare Tunnel / TCP proxy) is on the roadmap.
+- Gateway TLS is passthrough only — no termination at the proxy in the current MVP.
 - A single worker instance should run per metadata database (no external job locking yet).
