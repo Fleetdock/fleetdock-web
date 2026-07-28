@@ -49,8 +49,8 @@ credentials, and TLS behavior.
 
 | Component | Default port | Direction |
 | --------- | ------------ | --------- |
-| Manager API | `8080` (dev) / `443` (prod via proxy) | Agents and browsers → Manager |
-| Dashboard | `3000` (dev) / `443` (prod via proxy) | Browsers → Manager |
+| Caddy | `80`, `443` | Agents and browsers → Manager. The only public HTTP surface |
+| Control plane | `8080`, internal only | Serves both the API and the dashboard in one process |
 | Metadata PostgreSQL | `5432` | Internal to the Manager only — never public |
 | Database instances | the instance's **published port** | Manager → instance (for live admin/backup) |
 | Fleetdock Gateway | `15432–15481` (configurable range) | External apps → gateway → instance (when public access enabled) |
@@ -58,16 +58,24 @@ credentials, and TLS behavior.
 
 ## DNS and HTTPS
 
-- Point a DNS record at the Manager host and terminate **TLS** at the reverse proxy.
-- `FLEETDOCK_CORS_ORIGIN` must exactly match the dashboard origin (no wildcards).
-- `NEXT_PUBLIC_API_URL` is baked into the frontend build — rebuild the frontend image when
-  it changes.
+- Point a DNS record at the Manager host. The bundled Caddy obtains a certificate
+  automatically; without a domain the installer uses an `<ip>.sslip.io` name, which also
+  gets a real certificate.
+- **One hostname is enough.** The dashboard and API share an origin because one process
+  serves both, so there is no API subdomain, no CORS to configure, and nothing about your
+  hostname compiled into the dashboard — changing your domain never requires a rebuild.
+- The gateway reuses that same hostname; it speaks raw TCP on its own ports and needs no
+  record of its own. The exception is a CDN-proxied record (Cloudflare's orange cloud),
+  which passes 80/443 only — point a grey-clouded `gw.example.com` at the host and set
+  `FLEETDOCK_GATEWAY_PUBLIC_HOST`.
 
 See [Manager installation](/docs/manager#https-and-reverse-proxy) for a Caddy example.
 
 ## Firewalls and NAT
 
-- Allow inbound `443` to the reverse proxy; deny direct access to `8080`, `3000`, and `5432`.
+- Allow inbound `80` and `443`; deny direct access to `8080` and `5432`. Leaving `8080`
+  reachable also lets a client spoof `X-Forwarded-For` and bypass login rate limiting.
+- When external database access is enabled, also open the gateway port range.
 - Because the agent connects outbound, agents behind NAT generally work without inbound
   rules — but the database ports the Manager needs for live admin/backups must be reachable
   from the Manager.
@@ -88,15 +96,15 @@ For LAN/VM development — for example the Manager on your Mac and an agent in a
 set `FLEETDOCK_PUBLIC_URL` to your host's LAN IP, not `localhost`:
 
 ```bash
-FLEETDOCK_PUBLIC_URL=http://192.168.x.x:8080
+FLEETDOCK_PUBLIC_URL=http://192.168.x.x
 ```
 
 ### Multipass and other VMs
 
 <Callout type="warn">
   Inside a Multipass (or any) virtual machine, `localhost` points to **the VM itself**, not
-  to your macOS host. An agent in the VM that is told to reach `http://localhost:8080` will
-  try to connect to the VM, not to the Manager running on your host.
+  to your macOS host. An agent in the VM that is told to reach `http://localhost` will try
+  to connect to the VM, not to the Manager running on your host.
 </Callout>
 
 Use the **host-reachable IP** instead of `localhost`. Discover an address the VM can reach:

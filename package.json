@@ -9,6 +9,7 @@
     "lint": "eslint",
     "typecheck": "fumadocs-mdx && tsc --noEmit",
     "sync:openapi": "cp ../fleetdock/backend/internal/openapi/openapi.yaml openapi/openapi.yaml",
+    "sync:install": "cp ../fleetdock/scripts/install.sh public/install.sh",
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
