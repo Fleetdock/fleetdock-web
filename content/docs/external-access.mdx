@@ -30,16 +30,40 @@ External app → gateway.example.com:15432 (TCP) → HAProxy → server.address:
 
 ## Enable the gateway
 
-<Steps>
-
-<Step>
-### Configure environment variables
-
-Set in `.env`:
+External access is **off by default** — turning it on publishes a 50-port range on the host,
+which most installs never need.
 
 ```bash
-FLEETDOCK_GATEWAY_ENABLED=true
-FLEETDOCK_GATEWAY_PUBLIC_HOST=gateway.example.com   # DNS must resolve to your gateway host
+fleetdock gateway enable
+```
+
+That flips `FLEETDOCK_GATEWAY_ENABLED`, activates the `gateway` compose profile (HAProxy and
+its one-shot init, sharing `/var/lib/fleetdock/gateway` with the control plane), and prints
+the port range to open in your firewall. `fleetdock gateway disable` reverses it.
+
+By hand, the equivalent is `FLEETDOCK_GATEWAY_ENABLED=true` in `.env` plus
+`docker compose --profile gateway up -d`.
+
+### Hostname
+
+`FLEETDOCK_GATEWAY_PUBLIC_HOST` defaults to your main `FLEETDOCK_DOMAIN`. The gateway speaks
+raw TCP on its own ports — no vhost, no SNI, no TLS termination — so it needs no DNS record
+of its own.
+
+<Callout type="warn">
+  Set it separately when the main record cannot carry raw TCP. The usual culprit
+  is a **CDN-proxied record** — Cloudflare's orange cloud forwards 80/443 only,
+  so every database endpoint on that name is unreachable. Point a grey-clouded
+  `gw.example.com` at the host and set the variable to it.
+</Callout>
+
+The hostname is copied into each endpoint when public access is enabled, so changing it
+later does not rewrite connection URLs already issued. `fleetdock domain` explains how to
+adopt a new one.
+
+### Port range and options
+
+```bash
 FLEETDOCK_GATEWAY_PORT_RANGE_START=15432
 FLEETDOCK_GATEWAY_PORT_RANGE_END=15481
 ```
@@ -58,18 +82,7 @@ FLEETDOCK_GATEWAY_MASTER_SOCKET=/var/lib/fleetdock/gateway/haproxy-master.sock
 FLEETDOCK_GATEWAY_ADMIN_SOCKET=/var/lib/fleetdock/gateway/haproxy-admin.sock
 ```
 
-</Step>
-
-<Step>
-### Start the gateway service
-
-`docker compose up` starts the `gateway` (HAProxy) service and shares
-`/var/lib/fleetdock/gateway` with the API.
-
-</Step>
-
-<Step>
-### Enable public access per database
+## Enable public access per database
 
 On the database page → **Connectivity** → **Enable public access** with allowed CIDRs. Or
 use the API:
@@ -79,10 +92,6 @@ use the API:
 - `DELETE /v1/databases/{id}/public-access` — disable
 
 Check status with `GET /v1/databases/{id}/connectivity`.
-
-</Step>
-
-</Steps>
 
 ## Private vs public endpoints
 
@@ -192,15 +201,20 @@ TLS with the database directly, so the database must support it for `sslmode=req
 - CIDR allowlists are enforced in HAProxy (`tcp-request connection reject unless …`)
 - Explicit `0.0.0.0/0` is required for allow-from-anywhere — the UI warns when you choose it
 - Instance root credentials are never exposed for public use
-- Connectivity and credential changes are recorded in the audit log
+- Connectivity and credential changes are written to an append-only `audit_events` table
+  (not yet exposed through the API or dashboard — query it with `fleetdock psql`)
 
 See [Security](/docs/security) for the full trust model.
 
-## Production overlay
+## Production
 
-Use `docker-compose.prod.yml` with an external reverse proxy for the dashboard/API. Publish
-gateway ports `15432–15481` on the gateway host and point `gateway.example.com` at it. The
-Manager API and dashboard stay on `443`; gateway ports are separate TCP listeners.
+Open the gateway port range in the host firewall. The control plane cannot verify
+reachability from outside — firewalls, NAT and DNS sit beyond it — so this is the step most
+often missed. The dashboard and API stay on `443`; gateway ports are separate TCP listeners
+on the same host.
+
+On Linux, `network_mode: host` for the gateway service both avoids publishing a large port
+range and preserves real client addresses for allowlists.
 
 ## Troubleshooting
 

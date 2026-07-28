@@ -10,13 +10,14 @@ the docs — when multiple versions are available, use the version selector in t
 
 ## Base URL
 
-Point requests at your Manager host. In local development the default is:
+Point requests at your Manager host — the same origin that serves the dashboard:
 
 ```text
-http://localhost:8080
+https://db.example.com
 ```
 
-In production, use your Manager URL (for example `https://dbm.example.com`).
+Running the Go API directly for development, without the bundled proxy, it is
+`http://localhost:8080`.
 
 ## Authentication
 

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, ShieldAlert, Server, Cpu, Container as ContainerIcon, Network, Info } from "lucide-react";
+import { ArrowRight, ShieldAlert, Server, Cpu, Container as ContainerIcon, Network, Info, Lock, KeyRound } from "lucide-react";
 import { PageHero } from "@/components/marketing/page-hero";
 import { Container, Section, SectionHeading } from "@/components/shared/section";
 import { FinalCta } from "@/components/marketing/final-cta";
@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 export const metadata: Metadata = {
   title: "Security",
   description:
-    "Fleetdock's security model in plain terms: trust boundaries, Manager and Agent privileges, Docker socket access, encrypted secrets, and the compromise scenarios you should plan for.",
+    "Fleetdock's security model in plain terms: trust boundaries, Manager and Agent privileges, Docker socket access, encrypted secrets, public database endpoints, and the compromise scenarios you should plan for.",
   alternates: { canonical: "/security" },
 };
 
@@ -35,6 +35,16 @@ const boundaries = [
     icon: Network,
     title: "External database access",
     body: "For external instances, the control plane connects directly to the database host and port using stored admin credentials. Prefer private network paths.",
+  },
+  {
+    icon: Lock,
+    title: "Public database endpoints",
+    body: "Exposing a database to the internet is off by default and enabled per database. Traffic passes through the gateway on a dedicated port with a CIDR allowlist enforced at the proxy — never by publishing the database port directly.",
+  },
+  {
+    icon: KeyRound,
+    title: "Application credentials",
+    body: "External apps connect with scoped users (readonly, readwrite, or admin on one database), created and revoked from the dashboard. Instance root credentials are never exposed for public use.",
   },
 ];
 
@@ -60,9 +70,13 @@ const scenarios = [
 const protections = [
   "Single-use, short-lived agent registration tokens",
   "Envelope-encrypted secrets with operator-controlled key rotation",
+  "Changing a password invalidates that user's existing sessions everywhere",
+  "SSRF-resistant outbound HTTP — webhooks cannot reach loopback or cloud metadata",
+  "Public database access off by default, with CIDR allowlists at the proxy",
   "Presigned-URL backups — agents never receive storage credentials",
   "Role-based access control and scoped, revocable API tokens",
   "Login rate limiting, security headers, and health/readiness probes",
+  "Automatic HTTPS, with the API reachable only through the proxy",
   "Production mode that refuses to boot with default secrets",
 ];
 

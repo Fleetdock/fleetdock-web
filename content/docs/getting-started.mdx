@@ -9,54 +9,73 @@ the same steps apply to MySQL and PostgreSQL.
 
 ## Prerequisites
 
-- A host for the **Manager** with Docker Engine and Docker Compose v2.
-- One or more Linux **database servers** (amd64 or arm64) you can run a command on as root.
+- A Linux host for the **Manager** (x86_64 or arm64). Docker is installed for you if missing.
+- Ports **80** and **443** free on that host.
+- Optionally a domain pointed at it — without one, Fleetdock uses an `<ip>.sslip.io` name
+  that still gets a real TLS certificate.
+- One or more Linux **database servers** you can run a command on as root.
 - Outbound internet from those servers (to download the agent and, optionally, back up to
   object storage).
 
 ## 1. Install Fleetdock Manager
 
-The Docker Compose stack includes a local PostgreSQL container, so no external database
-account is required for a first run.
+One command. It installs Docker if needed, generates secrets, starts the stack behind Caddy
+with automatic HTTPS, and prints the dashboard URL and bootstrap password.
 
-<Steps>
+```bash
+curl -sSL https://fleetdock.dev/install.sh | sh -s -- --domain db.example.com
+```
 
-<Step>
-### Clone and configure
+Without `--domain` it picks an `<ip>.sslip.io` name for you, so HTTPS works with no DNS
+setup at all:
+
+```bash
+curl -sSL https://fleetdock.dev/install.sh | sh
+```
+
+When it finishes it prints something like:
+
+```text
+  Fleetdock is running.
+
+    Dashboard   https://db.example.com
+    Email       admin@example.com
+    Password    8fK2mQ...
+```
+
+The stack runs one application container plus PostgreSQL and Caddy. Only 80 and 443 are
+published. Migrations are applied and the admin account bootstrapped on first boot.
+
+<Callout type="info">
+  Re-running the installer upgrades in place and **never** regenerates `.env` —
+  rotating `FLEETDOCK_ENCRYPTION_KEY` would make every stored credential
+  permanently unreadable. Use `fleetdock update` for routine upgrades.
+</Callout>
+
+### Managing the install
+
+The installer also drops a `fleetdock` command on the host:
+
+```bash
+fleetdock status                  # container health and readiness
+fleetdock logs -f
+fleetdock update                  # pull a new release and restart
+fleetdock domain new.example.com  # move to a different hostname
+fleetdock doctor                  # diagnose DNS, certificates, reachability
+```
+
+### Running from source instead
 
 ```bash
 git clone https://github.com/Fleetdock/fleetdock.git
 cd fleetdock
 cp .env.example .env
 ./scripts/generate-secrets.sh >> .env
+docker compose -f docker-compose.yml -f docker-compose.build.yml up --build -d
 ```
 
 `generate-secrets.sh` appends strong values for `FLEETDOCK_JWT_SECRET`,
 `FLEETDOCK_ENCRYPTION_KEY`, and a bootstrap `FLEETDOCK_ADMIN_PASSWORD`.
-
-</Step>
-
-<Step>
-### Start the stack
-
-```bash
-docker compose up --build
-```
-
-- Dashboard: [http://localhost:3000](http://localhost:3000)
-- API: [http://localhost:8080](http://localhost:8080)
-
-The API applies its database migrations and bootstraps the admin account on first boot.
-
-</Step>
-
-</Steps>
-
-<Callout type="info">
-  Prefer published images? Skip local builds with the GHCR overlay: `export
-  FLEETDOCK_RELEASE_TAG=v0.1.0` then `docker compose -f docker-compose.yml -f
-  docker-compose.ghcr.yml up -d`.
-</Callout>
 
 ## 2. Create an administrator account
 
@@ -99,8 +118,9 @@ systemctl status fleetdock-agent
 ```
 
 <Callout type="info">
-  For local VM development, set `FLEETDOCK_PUBLIC_URL` to a host IP the VM can
-  reach (for example `http://192.168.x.x:8080`), not `localhost`. See
+  For local VM development, set `FLEETDOCK_PUBLIC_URL` to an address the VM can
+  actually reach (for example `http://192.168.x.x`), not `localhost` — it is
+  baked into the install command each agent is given. See
   [Networking](/docs/networking).
 </Callout>
 

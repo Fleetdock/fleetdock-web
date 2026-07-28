@@ -1,6 +1,6 @@
 ---
 title: Security
-description: Fleetdock's trust model — Manager and Agent privileges, tokens, encryption, audit, compromise scenarios, and current limitations.
+description: Fleetdock's trust model — Manager and Agent privileges, tokens and session invalidation, encryption, SSRF protection, compromise scenarios, and current limitations.
 ---
 
 Fleetdock holds credentials for your entire database fleet, so its security model is
@@ -13,18 +13,23 @@ control plane. To report a vulnerability, see the
 ```text
         Internet / corp network
                   │
-        TLS reverse proxy (443 only public)
+          Caddy :80/:443 (the only public HTTP surface)
                   │
-      ┌───────────┼────────────┐
-  Dashboard      API      Metadata DB (Postgres, private)
+        Fleetdock :8080 ── Metadata DB (Postgres, private)
+        one process: API + dashboard
                   │
       ┌───────────┴────────────┐
  Managed servers          External DBs
  (agent → API, outbound)  (API → host:port, direct)
                   │
-         Fleetdock Gateway (optional)
+         Fleetdock Gateway (optional, off by default)
          CIDR-gated TCP proxy → instance ports
 ```
+
+The control plane is a single process serving both the API and the dashboard on
+one port, behind a bundled Caddy that terminates TLS. Nothing else needs to be
+published: the dashboard has no port of its own, and the API is not reachable
+except through the proxy.
 
 ## Manager privileges
 
@@ -61,8 +66,15 @@ dedicated TCP ports with CIDR enforcement at the proxy layer.
 - **Application credentials** (scoped users with `readonly`, `readwrite`, or `admin`
   profiles) are used for external apps — instance root credentials are never exposed for
   public use.
-- Connectivity changes, credential creation, rotation, and revocation are recorded in the
-  audit log.
+- Connectivity changes, credential creation, rotation, and revocation are written to an
+  append-only `audit_events` table (an `UPDATE`/`DELETE` trigger forbids mutation).
+
+<Callout type="info">
+  Those events are **recorded but not yet readable**: there is no API endpoint
+  and no dashboard page for them in the current release. To inspect them today,
+  query `audit_events` on the metadata database directly (`fleetdock psql`).
+  Surfacing them in the API and UI is planned.
+</Callout>
 
 See [External database access](/docs/external-access) for setup and TLS behavior (TCP
 passthrough in the current MVP).
@@ -91,6 +103,17 @@ dashboard. Rotating `FLEETDOCK_JWT_SECRET` invalidates all sessions and login-de
 tokens (but not agent tokens). Suspending a user account stops its sessions and tokens from
 working immediately.
 
+### Session invalidation on credential change
+
+Every issued JWT carries a **token epoch** — a counter stored on the user record and
+compared on every authenticated request. Changing or resetting a password increments it,
+which immediately invalidates every session and login-derived token that user already had,
+everywhere.
+
+This is what makes "reset the password" a real containment step: a stolen JWT that has not
+yet expired stops working the moment the password changes, without waiting out its TTL or
+rotating the server-wide `FLEETDOCK_JWT_SECRET` and logging out everyone else.
+
 <Callout type="info">
   Explicit **revocation of an issued agent registration/bearer token** is
   limited in the current release — plan to re-enroll a node if you need to fully
@@ -101,7 +124,9 @@ working immediately.
 ## Authentication and encrypted transport
 
 Login uses email and password (bcrypt-hashed) and issues a JWT. **Deploy only over HTTPS** —
-terminate TLS at the reverse proxy and never expose the raw API/dashboard ports publicly.
+the bundled Caddy does this for you and obtains a certificate automatically. If you replace
+it with your own proxy, terminate TLS there and publish nothing but the proxy — leaving port
+8080 reachable also defeats the login rate limiter (see below).
 
 <Callout type="warn">
   The dashboard stores its session JWT in `localStorage`, which is exposed to
@@ -110,6 +135,51 @@ terminate TLS at the reverse proxy and never expose the raw API/dashboard ports 
   the dashboard. httpOnly cookie sessions and SSO/OIDC are on the roadmap, not
   in the current release.
 </Callout>
+
+## Outbound requests (SSRF protection)
+
+Notification channels let anyone with `notification:write` supply a URL that the control
+plane will then fetch. Unguarded, that is a request-forgery primitive: a webhook pointed at
+`http://169.254.169.254/` reads cloud instance-metadata credentials, and one pointed at
+loopback reaches services that were never meant to be public.
+
+Webhook and Slack delivery therefore goes through an SSRF-guarded HTTP client that refuses
+to dial:
+
+- loopback (`127.0.0.0/8`, `::1`)
+- link-local unicast and multicast (`169.254.0.0/16`, `fe80::/10`)
+- the unspecified address (`0.0.0.0`, `::`)
+- cloud instance-metadata endpoints, including the IPv6 form
+
+The check runs **at dial time against the resolved IP**, not on the URL string, so DNS
+rebinding and redirect-based bypasses are blocked too — a hostname that resolves to
+loopback is rejected at connect, however it got there.
+
+<Callout type="info">
+  RFC1918 private ranges (`10/8`, `172.16/12`, `192.168/16`) are deliberately
+  **allowed**: a self-hosted Mattermost or alerting endpoint on your LAN is a
+  legitimate webhook target. If your threat model needs those blocked too, keep
+  `notification:write` restricted to trusted roles.
+</Callout>
+
+## Login rate limiting and proxy headers
+
+Login is rate-limited per client IP. Which address counts as "the client" is controlled by
+`FLEETDOCK_TRUST_PROXY_HEADERS`, and it is wrong in both directions if set carelessly:
+
+| Setting | Client IP taken from | Use when |
+| --- | --- | --- |
+| `false` (default) | the transport peer | The API is reachable directly |
+| `true` | `X-Forwarded-For` | The API is reachable **only** through a trusted proxy |
+
+Leaving it `false` behind a reverse proxy makes every login attempt on the internet share a
+single bucket — the proxy's address — so one attacker locks out all users. Setting it `true`
+while the API port is also directly reachable is worse: a client can spoof `X-Forwarded-For`
+and get an unlimited number of attempts.
+
+The bundled Caddy deployment sets it to `true` and never publishes port 8080, which is the
+combination that is safe. If you put the API behind your own proxy, publish nothing but the
+proxy.
 
 ## Command authorization (RBAC)
 
@@ -146,8 +216,14 @@ make rotate-keys
 
 Set `FLEETDOCK_ENV=production`. In production mode the API **refuses to start** if
 `FLEETDOCK_JWT_SECRET`, `FLEETDOCK_ENCRYPTION_KEY`, or `FLEETDOCK_ADMIN_PASSWORD` still use
-insecure defaults. The API also applies login rate limiting and security headers, and exposes
-`/healthz` and `/readyz` probes.
+insecure defaults. The installer generates all three, so a default install is already in
+this state.
+
+API responses carry `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`,
+`Referrer-Policy: no-referrer` and `Cache-Control: no-store` — the last one matters because
+API payloads include tokens, credentials and connection strings that must never be held by
+an intermediary. Dashboard assets are served outside that chain so they keep their own
+immutable caching. `/healthz` and `/readyz` are unauthenticated probes.
 
 ## Node isolation and least privilege
 
@@ -173,5 +249,11 @@ insecure defaults. The API also applies login rate limiting and security headers
 - Session JWT is stored in `localStorage` (XSS exposure).
 - No SSO/OIDC or 2FA yet.
 - The agent runs as root via systemd.
+- Agent registration and bearer tokens cannot be revoked individually — re-enroll the node.
+- Audit events are recorded but not exposed through the API or dashboard yet.
 - Gateway TLS is passthrough only — no termination at the proxy in the current MVP.
+- Gateway CIDR allowlists match the address HAProxy observes, which is not the real client
+  address behind an L4 load balancer unless `FLEETDOCK_GATEWAY_SOURCE_IP_MODE=proxy-protocol`
+  is set. See [External database access](/docs/external-access).
+- No Content-Security-Policy header is set.
 - A single worker instance should run per metadata database (no external job locking yet).
