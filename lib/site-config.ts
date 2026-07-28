@@ -40,7 +40,7 @@ export const siteConfig = {
   maintainer: {
     name: "Fleetdock",
     url: "https://github.com/Fleetdock",
-    securityEmail: "security@tajbrains.com",
+    securityEmail: "security@fleetdock.com",
   },
 
   /** Supported database engines, per the repository. */
