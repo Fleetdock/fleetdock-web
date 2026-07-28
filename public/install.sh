@@ -380,6 +380,8 @@ fi
 # --- helper CLI ---------------------------------------------------------------
 
 step "Installing the fleetdock command"
+get_asset scripts/fleetdock /usr/local/bin/fleetdock
+chmod 755 /usr/local/bin/fleetdock
 # /usr/local/bin needs root on macOS, and the macOS path deliberately does not
 # ask for it. Fall back to a user bin and say so rather than failing.
 CLI_DIR=/usr/local/bin
