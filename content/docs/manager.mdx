@@ -3,8 +3,16 @@ title: Manager installation
 description: Install and operate the Fleetdock Manager control plane with Docker Compose, TLS, persistent storage, and production configuration.
 ---
 
-The **Fleetdock Manager** is the control plane. This page covers installing it, the
-environment variables it reads, and how to run it safely in production.
+The **Fleetdock Manager** is the control plane — the dashboard and API. This page covers
+installing it on a server, the environment variables it reads, and how to run it safely in
+production. To run it only on your own computer instead, see
+[Install on your computer](/docs/local).
+
+<Callout type="info">
+  **Two installers, two jobs.** `fleetdock.dev/install.sh` installs the Manager, once. The
+  command from **Servers → Connect server** installs the [Agent](/docs/agents) on each
+  database server — it is served by your own Manager, not by fleetdock.dev.
+</Callout>
 
 ## System requirements
 
@@ -27,15 +35,39 @@ PostgreSQL (Neon, RDS, Cloud SQL, or any PostgreSQL 14+) with `sslmode=require`.
 ## Install
 
 ```bash
-curl -sSL https://fleetdock.dev/install.sh | sh -s -- --domain db.example.com
+curl -sSL https://fleetdock.dev/install.sh | sudo sh
 ```
 
-This installs Docker if missing, writes `/opt/fleetdock/{docker-compose.yml,.env}` with
-generated secrets, starts the stack, and prints the dashboard URL and bootstrap password.
-Re-running it upgrades in place without touching `.env`.
+Run in a terminal, it asks where you are installing (a server, or only this computer), the
+domain — press Enter for a free `<ip>.sslip.io` name with HTTPS — and the admin email. It
+shows a summary and waits for you to confirm, then installs Docker if missing, writes
+`/opt/fleetdock/{docker-compose.yml,.env}` with generated secrets, starts the stack, and
+prints the dashboard URL, the bootstrap password and the next steps. Re-running it upgrades
+in place without touching `.env`.
 
-Manage it afterwards with the `fleetdock` command it installs — `status`, `logs`, `update`,
-`domain`, `gateway`, `doctor`, `backup-config`, `uninstall`.
+For automation (CI, cloud-init), pass the answers as flags and add `--yes`; without a
+terminal it never asks anything:
+
+```bash
+curl -sSL https://fleetdock.dev/install.sh | sudo sh -s -- \
+  --domain db.example.com --admin-email you@example.com --yes
+```
+
+| Option | Effect |
+| --- | --- |
+| `--domain <host>` | Dashboard hostname; gets an automatic Let's Encrypt certificate |
+| `--admin-email <e>` | Bootstrap admin account |
+| `--server` / `--local` | Skip the first question. `--local` is [only this computer](/docs/local) |
+| `--port <n>` | Local installs: serve on `http://localhost:<n>` |
+| `-y`, `--yes` | Ask nothing |
+| `--no-tls` | Plain HTTP on the host IP; no certificate |
+| `--with-gateway` | Also enable [external access](/docs/external-access) |
+| `--tag <tag>` | Image tag to run (default `latest`) |
+| `--dir <path>` | Install directory (default `/opt/fleetdock`) |
+
+Manage it afterwards with the `fleetdock` command it installs — `status`, `credentials`,
+`logs`, `update`, `domain`, `gateway`, `doctor`, `backup-db`, `backup-config`,
+`reset-admin-password`, `delete`. `fleetdock help` lists them all.
 
 ### From source
 
@@ -156,6 +188,8 @@ fleetdock update              # latest
 fleetdock update --tag v0.2.0 # a specific release
 ```
 
+`fleetdock update` backs up the metadata database first and stops if that fails.
+
 Or, from a source checkout:
 
 ```bash
@@ -176,12 +210,13 @@ upgrade.
 ## Uninstall
 
 ```bash
-docker compose down          # stop containers, keep the database volume
-docker compose down -v       # also delete volumes — destroys the metadata database
+fleetdock uninstall   # stop and remove containers; data and configuration stay
+fleetdock delete      # remove everything: containers, volumes, images, configuration
 ```
 
 <Callout type="error">
-  `docker compose down -v` deletes the `postgres_data` volume and permanently
-  removes all Fleetdock metadata. Only run it if you intend to discard the
-  installation.
+  `fleetdock delete` permanently removes all Fleetdock metadata and the `.env` that holds
+  `FLEETDOCK_ENCRYPTION_KEY`. It lists what it will remove and asks you to type `DELETE`.
+  Run `fleetdock backup-config` first if you might rebuild. A source checkout run with
+  `docker compose` is removed with `docker compose down -v`.
 </Callout>

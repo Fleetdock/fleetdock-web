@@ -3,14 +3,26 @@ title: Troubleshooting
 description: Diagnose common Fleetdock problems — agent connectivity, tokens, TLS and DNS, Docker permissions, port conflicts, disk space, and stuck operations.
 ---
 
-This page uses only commands that exist in the current release. The Fleetdock Manager has no
-`fleetdock doctor` command; diagnose with the health endpoints, the systemd journal, and
+This page uses only commands that exist in the current release. On an installed Manager,
+start with `fleetdock doctor` — it checks versions, container health, DNS, reachability and
+disk in one pass. Beyond that, diagnose with the health endpoints, the systemd journal, and
 standard Docker and Linux tools.
 
 <Callout type="info">
   Start with two signals: the Manager's `GET /readyz`, and the agent's journal
   (`journalctl -u fleetdock-agent`). Most issues surface in one of them.
 </Callout>
+
+## Installing Fleetdock
+
+| Symptom | Fix |
+| --- | --- |
+| `error: a server install must run as root` | Run `curl -sSL https://fleetdock.dev/install.sh \| sudo sh` — `sudo` after the pipe. Or add `--local` to install only for yourself on this computer |
+| `port 80 is already in use` | Stop what is bound there (often nginx or apache). For a [local install](/docs/local), pick another port with `--port 8090` |
+| The installer asked no questions | No terminal was available (CI, cloud-init, `ssh` without `-t`), so it used the flags and defaults. Pass `--domain` and `--admin-email` |
+| `Windows is supported through WSL2` | You ran it from Git Bash or MSYS. Use the Ubuntu (WSL) terminal — see [Install on your computer](/docs/local) |
+| `Docker is installed but not running` | Start Docker Desktop (macOS, Windows) or `sudo systemctl start docker`, then re-run |
+| A database on the same computer cannot be reached | Use `host.docker.internal` as its host, not `localhost`, and make sure it listens on more than `127.0.0.1` |
 
 ## Agent cannot connect
 

@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# fleetdock-web
 
-## Getting Started
+The website and documentation for [Fleetdock](https://github.com/Fleetdock/fleetdock),
+served at [fleetdock.dev](https://fleetdock.dev). Built with Next.js and
+[Fumadocs](https://fumadocs.dev).
 
-First, run the development server:
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+pnpm dev        # http://localhost:3000
+pnpm build      # production build; also type-checks the MDX
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+> This Next.js version differs from older ones — read the guides in
+> `node_modules/next/dist/docs/` before changing framework code (see `AGENTS.md`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Where things are
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Path | What |
+| --- | --- |
+| `app/(marketing)/` | Landing, features, use cases, architecture and security pages |
+| `content/docs/` | Documentation pages (MDX). Order and sections: `content/docs/meta.json` |
+| `openapi/` | The API spec the API reference pages are generated from |
+| `lib/versions.ts` | Documentation versions |
+| `next.config.ts` | Includes the `/install.sh` redirect |
 
-## Learn More
+## `/install.sh`
 
-To learn more about Next.js, take a look at the following resources:
+`https://fleetdock.dev/install.sh` — the Fleetdock installer people run with
+`curl -sSL https://fleetdock.dev/install.sh | sh` — is a **redirect** to
+[`scripts/install.sh`](https://github.com/Fleetdock/fleetdock/blob/main/scripts/install.sh)
+on the main repository's `main` branch. Do not copy the script into `public/`
+again: copies drift from the `docker-compose.yml` the installer downloads, and
+that drift has broken installs before. Change the installer in the main
+repository instead.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Not to be confused with the **agent** installer, which each Fleetdock install
+serves itself at `https://<your-fleetdock>/install.sh`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Docs content
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Documentation describes the released product. When behaviour changes in the
+main repository, update the matching page here — the installer and its options
+appear in `getting-started.mdx`, `manager.mdx`, `local.mdx` and
+`troubleshooting.mdx`.

@@ -19,21 +19,27 @@ the same steps apply to MySQL and PostgreSQL.
 
 ## 1. Install Fleetdock Manager
 
-One command. It installs Docker if needed, generates secrets, starts the stack behind Caddy
-with automatic HTTPS, and prints the dashboard URL and bootstrap password.
+<Callout type="info">
+  **Server or your own computer?** This guide installs the Manager on a server, so your
+  database servers can connect to it. To run Fleetdock only on your own machine — macOS,
+  Linux, or Windows through WSL2 — follow [Install on your computer](/docs/local) instead.
+</Callout>
+
+On the server, run:
 
 ```bash
-curl -sSL https://fleetdock.dev/install.sh | sh -s -- --domain db.example.com
+curl -sSL https://fleetdock.dev/install.sh | sudo sh
 ```
 
-Without `--domain` it picks an `<ip>.sslip.io` name for you, so HTTPS works with no DNS
-setup at all:
+It asks three things:
 
-```bash
-curl -sSL https://fleetdock.dev/install.sh | sh
-```
+1. **Where are you installing?** Press Enter for a server.
+2. **Domain** — the hostname you pointed at this server, or press Enter for a free
+   `<ip>.sslip.io` name that still gets a real HTTPS certificate.
+3. **Admin email.**
 
-When it finishes it prints something like:
+It then shows a summary and waits for you to confirm. It installs Docker if needed,
+generates secrets, starts the stack behind Caddy with automatic HTTPS, and prints:
 
 ```text
   Fleetdock is running.
@@ -46,6 +52,13 @@ When it finishes it prints something like:
 The stack runs one application container plus PostgreSQL and Caddy. Only 80 and 443 are
 published. Migrations are applied and the admin account bootstrapped on first boot.
 
+For automation, give the answers as flags and skip the questions:
+
+```bash
+curl -sSL https://fleetdock.dev/install.sh | sudo sh -s -- \
+  --domain db.example.com --admin-email you@example.com --yes
+```
+
 <Callout type="info">
   Re-running the installer upgrades in place and **never** regenerates `.env` —
   rotating `FLEETDOCK_ENCRYPTION_KEY` would make every stored credential
@@ -54,34 +67,35 @@ published. Migrations are applied and the admin account bootstrapped on first bo
 
 ### Managing the install
 
-The installer also drops a `fleetdock` command on the host:
+The installer also adds a `fleetdock` command on the host:
 
 ```bash
 fleetdock status                  # container health and readiness
+fleetdock credentials             # dashboard URL and admin login
 fleetdock logs -f
-fleetdock update                  # pull a new release and restart
+fleetdock update                  # back up, then pull a new release and restart
 fleetdock domain new.example.com  # move to a different hostname
 fleetdock doctor                  # diagnose DNS, certificates, reachability
 ```
 
 ### Running from source instead
 
+To work on Fleetdock itself, see
+[CONTRIBUTING.md](https://github.com/Fleetdock/fleetdock/blob/main/CONTRIBUTING.md):
+
 ```bash
 git clone https://github.com/Fleetdock/fleetdock.git
 cd fleetdock
 cp .env.example .env
 ./scripts/generate-secrets.sh >> .env
-docker compose -f docker-compose.yml -f docker-compose.build.yml up --build -d
+make up        # the full stack in Docker, at http://localhost
 ```
-
-`generate-secrets.sh` appends strong values for `FLEETDOCK_JWT_SECRET`,
-`FLEETDOCK_ENCRYPTION_KEY`, and a bootstrap `FLEETDOCK_ADMIN_PASSWORD`.
 
 ## 2. Create an administrator account
 
-The first admin is bootstrapped from `.env` on first boot. Sign in at the dashboard with
-the `FLEETDOCK_ADMIN_EMAIL` and `FLEETDOCK_ADMIN_PASSWORD` values, then change the
-password on the **Profile** page.
+The first admin is created on first boot with the email and password the installer printed
+(`fleetdock credentials` shows them again). Sign in, then change the password: your name
+(top right) → **Your profile**.
 
 ## 3. Add a node and generate a registration token
 
@@ -96,8 +110,9 @@ registration token** (prefix `fleetr_`) and a ready-to-paste install command.
 
 ## 4. Install the Fleetdock Agent
 
-Run the generated command on the database server. Put `sudo` **after** the pipe (before
-`sh`), because the installer must run as root:
+Run the generated command on the database server. This is the **agent installer**, served
+by your own Manager — not `fleetdock.dev/install.sh`, which installs the Manager. Put `sudo`
+**after** the pipe (before `sh`), because the installer must run as root:
 
 ```bash
 curl -sSL https://your-control-plane/install.sh | \
