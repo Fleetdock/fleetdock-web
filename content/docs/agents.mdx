@@ -6,6 +6,14 @@ description: Install, configure, and operate the Fleetdock Agent on a database n
 The **Fleetdock Agent** runs on each database node. It enrolls with the Manager, sends
 health heartbeats, and executes approved operations locally.
 
+<Callout type="info">
+  The agent installer is **not** `fleetdock.dev/install.sh` — that one installs the
+  [Manager](/docs/manager). The agent's installer is served by your own Manager at
+  `https://<your-manager>/install.sh`, and the dashboard gives you the exact command.
+  The Manager must be reachable from the server: a [local install](/docs/local) on a laptop
+  is not, unless you give it a LAN or VPN address.
+</Callout>
+
 ## Supported operating systems
 
 - **Linux only**, on `amd64` (x86_64) or `arm64` (aarch64).

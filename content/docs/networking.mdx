@@ -92,12 +92,16 @@ database ports to the internet.
 
 ## Local development
 
-For LAN/VM development — for example the Manager on your Mac and an agent in a Ubuntu VM —
-set `FLEETDOCK_PUBLIC_URL` to your host's LAN IP, not `localhost`:
+For LAN/VM development — for example the Manager on your Mac and an agent in an Ubuntu VM —
+the agent must be told an address it can reach, not `localhost`. On an installed Manager,
+switch it to your computer's LAN address:
 
 ```bash
-FLEETDOCK_PUBLIC_URL=http://192.168.x.x
+fleetdock domain 192.168.x.x
 ```
+
+On a [local install](/docs/local) this also makes the Manager listen on every network
+interface instead of only on `127.0.0.1`; `fleetdock domain localhost` switches back.
 
 ### Multipass and other VMs
 
@@ -113,17 +117,20 @@ Use the **host-reachable IP** instead of `localhost`. Discover an address the VM
 # On macOS — find your host's LAN IP (often on en0):
 ipconfig getifaddr en0
 
-# From inside the VM — confirm the host is reachable on the API port:
-curl -fsS http://<host-ip>:8080/healthz
+# From inside the VM — confirm the Manager is reachable:
+curl -fsS http://<host-ip>/healthz
 ```
 
-Then set `FLEETDOCK_PUBLIC_URL=http://<host-ip>:8080` on the Manager and use the same URL in
-the install command. Values like `<host-ip>` are environment-specific — do not hardcode a
-fixed gateway address, as it varies between machines and networks.
+An installed Manager serves on port 80 (or the `--port` you chose); port `8080` is only
+used by `make dev`, where the API runs outside Docker. Values like `<host-ip>` are
+environment-specific — do not hardcode a fixed gateway address, as it varies between
+machines and networks.
 
 ## Docker networking
 
-Within the Compose stack, services reach each other by service name (`backend`, `frontend`,
-`postgres`) on the internal Docker network — that is why the Caddy example proxies to
-`backend:8080` and `frontend:3000`. Published ports (`8080`, `3000`) are for access from the
-host; keep them unpublished in production and route through the proxy.
+Within the Compose stack, services reach each other by service name (`fleetdock`,
+`postgres`) on the internal Docker network — that is why a reverse proxy points at
+`fleetdock:8080`. Only Caddy publishes ports (80 and 443); `8080` and `5432` stay internal.
+
+To reach a database running on the **same machine** as the Manager, use the host
+`host.docker.internal`: inside the container, `localhost` is the container itself.
