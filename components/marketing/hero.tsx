@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { siteConfig } from "@/lib/site-config";
+import { getLatestVersion } from "@/lib/release";
 import { cn } from "@/lib/utils";
 import { Container } from "@/components/shared/section";
 import { buttonVariants } from "@/components/ui/button";
 import { GitHubIcon } from "@/components/shared/icons";
 import { ProductPreview } from "./product-preview";
 
-export function Hero() {
+export async function Hero() {
+  const version = await getLatestVersion();
   return (
     <section className="relative overflow-hidden border-b border-border">
       {/* Decorative backdrop */}
@@ -36,7 +38,7 @@ export function Hero() {
             <span aria-hidden className="text-border-strong">
               •
             </span>
-            <span>Self-hosted · {siteConfig.version}</span>
+            <span>Self-hosted · {version}</span>
             <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" aria-hidden />
           </a>
 

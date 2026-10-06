@@ -73,7 +73,11 @@ The installer shows what it is about to do and asks you to confirm, then prints 
 ```
 
 <Callout type="info">
-  Port 80 already in use? Add `--port 8090` and open `http://localhost:8090` instead.
+  Run it **without `sudo`** on macOS and Windows: Docker Desktop runs as you, and Fleetdock
+  installs into your home folder.
+
+  Port 80 already in use? The installer offers the next free port, or choose one with
+  `--port 8090`. Move it later with `fleetdock port 3333`.
 </Callout>
 
 ## 2. Connect your databases
