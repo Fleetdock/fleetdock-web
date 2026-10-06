@@ -5,36 +5,40 @@ import {
   SectionHeading,
 } from "@/components/shared/section";
 import { siteConfig } from "@/lib/site-config";
+import { getLatestVersion } from "@/lib/release";
 import { GitBranch, Heart, Scale, Tag } from "lucide-react";
 
-const facts = [
-  {
-    icon: Scale,
-    label: "License",
-    value: siteConfig.license.name,
-    href: siteConfig.links.license,
-  },
-  {
-    icon: GitHubIcon,
-    label: "Source",
-    value: "Fleetdock/fleetdock",
-    href: siteConfig.links.github,
-  },
-  {
-    icon: Tag,
-    label: "Latest release",
-    value: siteConfig.version,
-    href: siteConfig.links.releases,
-  },
-  {
-    icon: Heart,
-    label: "Contributing",
-    value: "Guide & CoC",
-    href: siteConfig.links.contributing,
-  },
-];
+function getFacts(version: string) {
+  return [
+    {
+      icon: Scale,
+      label: "License",
+      value: siteConfig.license.name,
+      href: siteConfig.links.license,
+    },
+    {
+      icon: GitHubIcon,
+      label: "Source",
+      value: "Fleetdock/fleetdock",
+      href: siteConfig.links.github,
+    },
+    {
+      icon: Tag,
+      label: "Latest release",
+      value: version,
+      href: siteConfig.links.releases,
+    },
+    {
+      icon: Heart,
+      label: "Contributing",
+      value: "Guide & CoC",
+      href: siteConfig.links.contributing,
+    },
+  ];
+}
 
-export function OpenSourceSection() {
+export async function OpenSourceSection() {
+  const facts = getFacts(await getLatestVersion());
   return (
     <Section
       id="open-source"

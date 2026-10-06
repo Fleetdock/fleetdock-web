@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { footerNav, siteConfig } from "@/lib/site-config";
+import { getLatestVersion } from "@/lib/release";
 import { Logo } from "@/components/shared/logo";
 import { GitHubIcon } from "@/components/shared/icons";
 import { Container } from "@/components/shared/section";
 
-export function Footer() {
+export async function Footer() {
+  const version = await getLatestVersion();
   return (
     <footer className="border-t border-border bg-background-subtle">
       <Container className="py-14">
@@ -85,7 +87,7 @@ export function Footer() {
             <span aria-hidden className="text-border-strong">
               •
             </span>
-            <span>{siteConfig.version}</span>
+            <span>{version}</span>
           </p>
         </div>
       </Container>
