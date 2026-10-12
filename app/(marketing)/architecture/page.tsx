@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { createMetadata } from "@/lib/metadata";
 import Link from "next/link";
 import { ArrowRight, Server, Cpu, Boxes, Radio } from "lucide-react";
 import { PageHero } from "@/components/marketing/page-hero";
@@ -8,12 +9,12 @@ import { FinalCta } from "@/components/marketing/final-cta";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createMetadata({
   title: "Architecture",
   description:
-    "How Fleetdock separates the control plane from your database nodes: the Manager orchestrates and tracks operations, while a lightweight Agent on each node executes them locally.",
-  alternates: { canonical: "/architecture" },
-};
+    "How Fleetdock splits the control plane from your nodes: the Manager orchestrates and tracks operations; a lightweight Agent on each node runs them locally.",
+  path: "/architecture",
+});
 
 const components = [
   {

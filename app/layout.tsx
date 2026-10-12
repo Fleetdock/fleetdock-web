@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { RootProvider } from "fumadocs-ui/provider/next";
 import { siteConfig } from "@/lib/site-config";
+import { defaultOgImage } from "@/lib/metadata";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,7 +20,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: `${siteConfig.name} — ${siteConfig.tagline}`,
+    default: siteConfig.title,
     template: `%s — ${siteConfig.name}`,
   },
   description: siteConfig.metaDescription,
@@ -38,24 +39,40 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: siteConfig.maintainer.name, url: siteConfig.maintainer.url }],
   creator: siteConfig.maintainer.name,
+  publisher: siteConfig.maintainer.name,
+  category: "technology",
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: siteConfig.url,
+    url: "/",
     siteName: siteConfig.name,
-    title: `${siteConfig.name} — ${siteConfig.tagline}`,
-    description: siteConfig.description,
+    title: siteConfig.title,
+    description: siteConfig.metaDescription,
+    images: [defaultOgImage],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteConfig.name} — ${siteConfig.tagline}`,
-    description: siteConfig.description,
+    title: siteConfig.title,
+    description: siteConfig.metaDescription,
+    images: [defaultOgImage],
   },
   robots: {
     index: true,
     follow: true,
-    googleBot: { index: true, follow: true },
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+  ],
 };
 
 export default function RootLayout({

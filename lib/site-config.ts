@@ -23,9 +23,11 @@ export const siteConfig = {
   /** Primary product description used for metadata and hero support copy. */
   description:
     "Provision, monitor, back up, restore, and migrate self-hosted database instances across your servers from one secure interface.",
-  /** Longer description for SEO metadata. */
+  /** Default document title; kept under ~65 characters so search results show it whole. */
+  title: "Fleetdock — Open-source control plane for self-hosted databases",
+  /** Search-result description; kept under ~160 characters to avoid truncation. */
   metaDescription:
-    "Fleetdock is an open-source control plane for managing self-hosted MariaDB, MySQL, and PostgreSQL across your own servers — provisioning, monitoring, backups, restores, and migrations from one secure dashboard.",
+    "Open-source control plane for self-hosted MariaDB, MySQL, and PostgreSQL: provision, monitor, back up, restore, and migrate databases across your servers.",
 
   url: SITE_URL,
 

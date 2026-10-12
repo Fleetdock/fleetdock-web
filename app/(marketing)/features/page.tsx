@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { createMetadata } from "@/lib/metadata";
 import {
   LayoutDashboard,
   CalendarClock,
@@ -19,12 +20,12 @@ import { FeatureGrid, type FeatureItem } from "@/components/marketing/feature-gr
 import { ComparisonSection } from "@/components/marketing/comparison-section";
 import { FinalCta } from "@/components/marketing/final-cta";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createMetadata({
   title: "Features",
   description:
-    "Provisioning, monitoring, backups, restores, migrations, scheduling, alerting, RBAC, and live database administration for MariaDB, MySQL, and PostgreSQL — from one control plane.",
-  alternates: { canonical: "/features" },
-};
+    "Provisioning, monitoring, backups, restores, migrations, alerting, RBAC, and live administration for MariaDB, MySQL, and PostgreSQL from one control plane.",
+  path: "/features",
+});
 
 const automation: FeatureItem[] = [
   {

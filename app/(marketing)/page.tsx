@@ -9,33 +9,67 @@ import { ComparisonSection } from "@/components/marketing/comparison-section";
 import { SecuritySection } from "@/components/marketing/security-section";
 import { OpenSourceSection } from "@/components/marketing/open-source-section";
 import { FinalCta } from "@/components/marketing/final-cta";
+import { JsonLd } from "@/components/shared/json-ld";
 import { siteConfig } from "@/lib/site-config";
+import { createMetadata } from "@/lib/metadata";
+import { getLatestVersion } from "@/lib/release";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/" },
-};
-
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: siteConfig.name,
-  applicationCategory: "DeveloperApplication",
-  operatingSystem: "Linux, Docker",
+export const metadata: Metadata = createMetadata({
   description: siteConfig.metaDescription,
-  url: siteConfig.url,
-  license: siteConfig.links.license,
-  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-  author: { "@type": "Organization", name: siteConfig.maintainer.name, url: siteConfig.maintainer.url },
-};
+  path: "/",
+});
 
-export default function HomePage() {
+const organizationId = `${siteConfig.url}/#organization`;
+
+/** Organization, WebSite, and SoftwareApplication structured data. */
+function homeJsonLd(version: string) {
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": organizationId,
+        name: siteConfig.maintainer.name,
+        url: siteConfig.url,
+        logo: `${siteConfig.url}/logo.png`,
+        sameAs: [siteConfig.maintainer.url, siteConfig.links.github],
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${siteConfig.url}/#website`,
+        name: siteConfig.name,
+        url: siteConfig.url,
+        description: siteConfig.metaDescription,
+        inLanguage: "en",
+        publisher: { "@id": organizationId },
+      },
+      {
+        "@type": "SoftwareApplication",
+        name: siteConfig.name,
+        applicationCategory: "DeveloperApplication",
+        operatingSystem: "Linux, macOS, Windows (WSL2), Docker",
+        description: siteConfig.metaDescription,
+        url: siteConfig.url,
+        image: `${siteConfig.url}/opengraph-image`,
+        ...(version !== siteConfig.fallbackVersion
+          ? { softwareVersion: version.replace(/^v/, "") }
+          : {}),
+        downloadUrl: siteConfig.links.releases,
+        releaseNotes: siteConfig.links.changelog,
+        license: siteConfig.links.license,
+        isAccessibleForFree: true,
+        offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+        author: { "@id": organizationId },
+      },
+    ],
+  };
+}
+
+export default async function HomePage() {
+  const version = await getLatestVersion();
   return (
     <>
-      <script
-        type="application/ld+json"
-        // Structured data for the software application.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <JsonLd data={homeJsonLd(version)} />
       <Hero />
       <ProblemSection />
       <DatabaseOperations />

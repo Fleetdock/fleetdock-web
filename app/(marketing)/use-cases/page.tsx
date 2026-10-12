@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
+import { createMetadata } from "@/lib/metadata";
 import { PageHero } from "@/components/marketing/page-hero";
 import { useCases } from "@/components/marketing/use-cases-section";
 import { Container, Section } from "@/components/shared/section";
 import { FinalCta } from "@/components/marketing/final-cta";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createMetadata({
   title: "Use cases",
   description:
-    "How SaaS platforms, ERP and CRM vendors, hosting providers, agencies, and infrastructure teams use Fleetdock to operate many isolated database instances across servers.",
-  alternates: { canonical: "/use-cases" },
-};
+    "How SaaS platforms, ERP and CRM vendors, hosting providers, and agencies use Fleetdock to run many isolated database instances across their servers.",
+  path: "/use-cases",
+});
 
 export default function UseCasesPage() {
   return (
