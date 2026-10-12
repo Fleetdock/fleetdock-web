@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { createMetadata } from "@/lib/metadata";
 import Link from "next/link";
 import { ArrowRight, ShieldAlert, Server, Cpu, Container as ContainerIcon, Network, Info, Lock, KeyRound } from "lucide-react";
 import { PageHero } from "@/components/marketing/page-hero";
@@ -8,12 +9,12 @@ import { buttonVariants } from "@/components/ui/button";
 import { siteConfig } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createMetadata({
   title: "Security",
   description:
-    "Fleetdock's security model in plain terms: trust boundaries, Manager and Agent privileges, Docker socket access, encrypted secrets, public database endpoints, and the compromise scenarios you should plan for.",
-  alternates: { canonical: "/security" },
-};
+    "Fleetdock's security model in plain terms: trust boundaries, Manager and Agent privileges, encrypted secrets, public endpoints, and compromise scenarios.",
+  path: "/security",
+});
 
 const boundaries = [
   {
