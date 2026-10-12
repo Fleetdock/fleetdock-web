@@ -1,6 +1,6 @@
 ---
 title: Backups
-description: Manual and scheduled backups to S3, Cloudflare R2, or S3-compatible storage — retention, status, encryption, and integrity.
+description: Manual and scheduled backups to S3, Cloudflare R2, or S3-compatible storage — or a one-off download without storage — with retention, status, encryption, and integrity.
 ---
 
 Fleetdock backs up databases with each engine's native logical dump tool — `mariadb-dump`
@@ -34,6 +34,28 @@ size.
 
 From a database's detail page, trigger a backup. It appears as an operation with status and
 progress on the **Operations** page.
+
+## Download a backup without storage
+
+You don't need a bucket for a one-off backup. Open a database, choose **Back up now →
+Download to this computer**, and your browser saves a `<database>-<YYYYMMDD-HHMMSS>.sql.gz`
+file: the same gzipped `pg_dump` / `mariadb-dump` output a stored backup contains.
+
+- **Nothing is kept in Fleetdock.** The dump streams from the database through the control
+  plane straight to your browser. It is not written to disk or a bucket, has no checksum
+  record, and does not appear in the backup history.
+- **The control plane runs the dump**, so it must reach the database port — the same
+  requirement as the data browser. SSH tunnels configured on the instance are used.
+- **Permissions:** the same `backup:write` right as a stored backup. The dump runs as the
+  instance's admin login.
+- **Restoring:** use **Import SQL** on the target database; it accepts the `.sql.gz` as is.
+
+Fleetdock first checks that the dump can start (tool installed, database reachable) and
+reports a problem as a message. If the connection breaks mid-way, the file is truncated and
+`gunzip -t` reports it as corrupt — download it again.
+
+The API equivalents are `POST /v1/databases/{id}/dump/check` and
+`GET /v1/databases/{id}/dump`.
 
 ## Scheduled backups
 
