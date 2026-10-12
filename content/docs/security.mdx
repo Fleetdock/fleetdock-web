@@ -39,9 +39,16 @@ front of it, restrict who can reach it, and monitor the **Operations** log.
 
 ## Agent privileges
 
-Each agent runs as **root** via systemd today and executes approved operations on its own
-node. Its authority is scoped to that single node and the databases on it. Treat any host
-running an agent as one that can act on its local databases and Docker.
+Each agent runs as **root** — provisioning drives Docker, which is root-equivalent anyway —
+and executes approved operations on its own node. Its authority is scoped to that single
+node and the databases on it. Treat any host running an agent as one that can act on its
+local databases and Docker.
+
+The agent's systemd unit is sandboxed to narrow what a compromised agent process can change:
+`NoNewPrivileges`, `ProtectSystem=full` (read-only `/usr`, `/boot` and `/etc`),
+`ProtectHome=read-only`, `PrivateTmp`, kernel tunable/module/log and control-group
+protections, `RestrictSUIDSGID`, `RestrictNamespaces` and a `0077` umask. Servers enrolled
+before this unit shipped pick it up when you re-run the install command.
 
 ## Docker socket access
 
@@ -86,7 +93,7 @@ Fleetdock uses three token types, each with a display prefix:
 | Token              | Prefix    | Purpose                      | Lifecycle                                     |
 | ------------------ | --------- | ---------------------------- | --------------------------------------------- |
 | Registration token | `fleetr_` | Enroll a new agent           | Single-use, short-lived                       |
-| Agent bearer token | `fleeta_` | Ongoing agent authentication | Issued on enrollment, stored on the node      |
+| Agent bearer token | `fleeta_` | Ongoing agent authentication | Issued on enrollment; revocable and rotatable per server |
 | API token          | `fleetd_` | Automation / CI access       | Created, listed, and revoked in the dashboard |
 
 <Callout type="warn">
@@ -114,12 +121,21 @@ This is what makes "reset the password" a real containment step: a stolen JWT th
 yet expired stops working the moment the password changes, without waiting out its TTL or
 rotating the server-wide `FLEETDOCK_JWT_SECRET` and logging out everyone else.
 
-<Callout type="info">
-  Explicit **revocation of an issued agent registration/bearer token** is
-  limited in the current release — plan to re-enroll a node if you need to fully
-  rotate its agent credentials. This gap is tracked in the project's product
-  notes.
-</Callout>
+### Revoking and rotating agent tokens
+
+Each server's agent token can be cut off or replaced from the server's page
+(**Servers → server → ⋯**):
+
+- **Revoke agent token** — the agent can no longer report in or run operations, effective
+  immediately. Use it when a node or its token may be compromised.
+- **Rotate agent token** — revokes the current token and shows a single-use install command,
+  valid for 24 hours and bound to that server. Run it on the node to re-enroll the **same**
+  server with a fresh `fleeta_` token; nothing about its databases changes.
+
+The API equivalents are `DELETE /v1/servers/{id}/agent-token` and
+`POST /v1/servers/{id}/agent-token/rotate`, both requiring `server:write`. Install commands
+that were never used are listed on the **Servers** page, where they can be revoked before
+anyone enrolls a host with them.
 
 ## Authentication and encrypted transport
 
@@ -128,13 +144,18 @@ the bundled Caddy does this for you and obtains a certificate automatically. If 
 it with your own proxy, terminate TLS there and publish nothing but the proxy — leaving port
 8080 reachable also defeats the login rate limiter (see below).
 
-<Callout type="warn">
-  The dashboard stores its session JWT in `localStorage`, which is exposed to
-  XSS. Keep frontend dependencies patched, avoid untrusted browser extensions on
-  admin machines, and consider a VPN, SSO gateway, or IP allowlist in front of
-  the dashboard. httpOnly cookie sessions and SSO/OIDC are on the roadmap, not
-  in the current release.
-</Callout>
+### Session cookies
+
+The dashboard's session is an `HttpOnly`, `SameSite=Strict` cookie (`fleetdock_session`)
+set by login, so script running on the page — including injected script — cannot read it.
+It is marked `Secure` whenever the request arrives over HTTPS or `FLEETDOCK_PUBLIC_URL` is
+`https://`.
+
+Every state-changing request authenticated by the cookie must also carry the header
+`X-Fleetdock-CSRF: 1`, which a browser only sends cross-origin after a CORS preflight the API
+does not grant; `SameSite=Strict` is a second layer. API clients authenticating with an
+`Authorization: Bearer` token are unaffected. Signing out clears the cookie and ends every
+session of that user.
 
 ## Outbound requests (SSRF protection)
 
@@ -220,10 +241,16 @@ insecure defaults. The installer generates all three, so a default install is al
 this state.
 
 API responses carry `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`,
-`Referrer-Policy: no-referrer` and `Cache-Control: no-store` — the last one matters because
+`Referrer-Policy: no-referrer`, `Content-Security-Policy: default-src 'none'` and
+`Cache-Control: no-store` — the last one matters because
 API payloads include tokens, credentials and connection strings that must never be held by
 an intermediary. Dashboard assets are served outside that chain so they keep their own
-immutable caching. `/healthz` and `/readyz` are unauthenticated probes.
+immutable caching, under a Content-Security-Policy that confines the dashboard to its own
+origin.
+
+Background work is safe to run on several replicas against one metadata database: jobs are
+claimed with `FOR UPDATE SKIP LOCKED`, and housekeeping and migrations take Postgres
+advisory locks so only one replica runs them at a time. `/healthz` and `/readyz` are unauthenticated probes.
 
 ## Node isolation and least privilege
 
@@ -246,14 +273,10 @@ immutable caching. `/healthz` and `/readyz` are unauthenticated probes.
 
 ## Current limitations
 
-- Session JWT is stored in `localStorage` (XSS exposure).
 - No SSO/OIDC or 2FA yet.
-- The agent runs as root via systemd.
-- Agent registration and bearer tokens cannot be revoked individually — re-enroll the node.
+- The agent runs as root (required to drive Docker), inside a sandboxed systemd unit.
 - Audit events are recorded but not exposed through the API or dashboard yet.
 - Gateway TLS is passthrough only — no termination at the proxy in the current MVP.
 - Gateway CIDR allowlists match the address HAProxy observes, which is not the real client
   address behind an L4 load balancer unless `FLEETDOCK_GATEWAY_SOURCE_IP_MODE=proxy-protocol`
   is set. See [External database access](/docs/external-access).
-- No Content-Security-Policy header is set.
-- A single worker instance should run per metadata database (no external job locking yet).

@@ -9,6 +9,7 @@ import {
   UserCheck,
   Globe,
   Info,
+  Cookie,
 } from "lucide-react";
 import { Container, Section, SectionHeading } from "@/components/shared/section";
 import { buttonVariants } from "@/components/ui/button";
@@ -18,7 +19,12 @@ const properties = [
   {
     icon: KeyRound,
     title: "Single-use enrollment",
-    body: "Agents register with short-lived, single-use tokens and then authenticate with their own bearer token.",
+    body: "Agents register with short-lived, single-use tokens, then authenticate with their own bearer token — revocable and rotatable per server.",
+  },
+  {
+    icon: Cookie,
+    title: "HttpOnly sessions",
+    body: "The dashboard session lives in an HttpOnly, SameSite=Strict cookie with CSRF protection, out of reach of page script.",
   },
   {
     icon: Lock,
@@ -86,11 +92,10 @@ export function SecuritySection() {
               Known limitations in the current release
             </h3>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              The dashboard stores its session token in <code className="font-mono text-xs">localStorage</code>, so
-              deploy it behind TLS on a trusted network.               SSO/OIDC and 2FA are on the roadmap,
-              not yet available. The agent currently runs as root. Gateway TLS is passthrough
-              only in the current MVP. See the security documentation for
-              the full trust model and mitigations.
+              SSO/OIDC and 2FA are on the roadmap, not yet available. The agent runs as root
+              (required to drive Docker) inside a sandboxed systemd unit. Gateway TLS is
+              passthrough only in the current MVP. See the security documentation for the full
+              trust model and mitigations.
             </p>
           </div>
         </div>

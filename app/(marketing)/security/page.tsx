@@ -25,7 +25,7 @@ const boundaries = [
   {
     icon: Cpu,
     title: "Agent privileges",
-    body: "Each agent runs as root on its node today and executes approved operations locally. Its authority is scoped to that single node and the databases on it.",
+    body: "Each agent runs as root on its node — Docker provisioning requires it — inside a sandboxed systemd unit. Its authority is scoped to that single node, and its token can be revoked or rotated at any time.",
   },
   {
     icon: ContainerIcon,
@@ -69,14 +69,18 @@ const scenarios = [
 ];
 
 const protections = [
+  "HttpOnly, SameSite=Strict session cookies with CSRF protection — script cannot read the session",
   "Single-use, short-lived agent registration tokens",
+  "Per-server agent token revocation and rotation, with one-time re-enroll commands",
+  "Agent runs inside a sandboxed systemd unit (no new privileges, read-only system paths)",
   "Envelope-encrypted secrets with operator-controlled key rotation",
   "Changing a password invalidates that user's existing sessions everywhere",
   "SSRF-resistant outbound HTTP — webhooks cannot reach loopback or cloud metadata",
   "Public database access off by default, with CIDR allowlists at the proxy",
   "Presigned-URL backups — agents never receive storage credentials",
   "Role-based access control and scoped, revocable API tokens",
-  "Login rate limiting, security headers, and health/readiness probes",
+  "Login rate limiting, Content-Security-Policy and security headers, and health/readiness probes",
+  "Multiple replicas can share one metadata database — jobs and housekeeping are locked in Postgres",
   "Automatic HTTPS, with the API reachable only through the proxy",
   "Production mode that refuses to boot with default secrets",
 ];
@@ -170,13 +174,17 @@ export default function SecurityPage() {
                 Current limitations
               </h3>
               <ul className="flex flex-col gap-2 text-sm leading-relaxed text-muted-foreground">
-                <li>
-                  The dashboard stores its session token in{" "}
-                  <code className="font-mono text-xs">localStorage</code>, which is exposed to
-                  XSS. Deploy behind TLS on a trusted network.
-                </li>
                 <li>SSO/OIDC and 2FA are on the roadmap, not yet available.</li>
-                <li>The agent runs as root via systemd today.</li>
+                <li>
+                  The agent runs as root (required to drive Docker), inside a sandboxed systemd
+                  unit.
+                </li>
+                <li>
+                  Audit events are recorded but not yet exposed through the API or dashboard.
+                </li>
+                <li>
+                  Gateway TLS is passthrough only, with one public port per database.
+                </li>
                 <li>
                   Closed-port access to external databases (Cloudflare Tunnel / TCP proxy) is on
                   the roadmap, not in the current release.
