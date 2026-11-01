@@ -4,29 +4,19 @@ import { Container, Section, SectionHeading } from "@/components/shared/section"
 
 const steps = [
   {
-    title: "Deploy Fleetdock Manager",
-    body: "Bring up the control plane with Docker Compose (a local Postgres is included) or point it at managed PostgreSQL.",
+    title: "Get a Linux server",
+    body: "2 vCPU and 4 GB of RAM is enough to start, with ports 80 and 443 open. A domain is optional: the installer can give you a free sslip.io name with HTTPS.",
     href: "/docs/manager",
   },
   {
-    title: "Add a node and generate a token",
-    body: "Register a database server from the dashboard to get a single-use registration token and a ready-to-paste install command.",
-    href: "/docs/nodes",
+    title: "Run one command",
+    body: "The installer asks for a domain and an admin email, installs Docker if needed and starts Fleetdock behind automatic HTTPS. It prints your login at the end.",
+    href: "/docs/getting-started",
   },
   {
-    title: "Install the Fleetdock Agent",
-    body: "Run one curl command on the server. The agent enrolls, installs the database client tools, and appears within about 30 seconds.",
-    href: "/docs/agents",
-  },
-  {
-    title: "Provision a database instance",
-    body: "Launch a new MariaDB, MySQL, or PostgreSQL instance in an isolated container, or register a database the server already runs.",
+    title: "Connect your databases",
+    body: "Add any MariaDB, MySQL or PostgreSQL server Fleetdock can reach (hosted ones like RDS too), or install the agent on a machine to create database containers there.",
     href: "/docs/database-instances",
-  },
-  {
-    title: "Configure backups and monitoring",
-    body: "Add a backup destination, schedule recurring backups with retention, and watch node and instance health from the overview.",
-    href: "/docs/backups",
   },
 ];
 
@@ -36,11 +26,11 @@ export function HowItWorks() {
       <Container>
         <SectionHeading
           eyebrow="How it works"
-          title="From zero to a managed database in five steps."
-          description="Each step maps to a documented procedure with the real commands from the repository."
+          title="Running in about five minutes."
+          description="No Kubernetes, no cloud account, no sign-up. Day to day, the fleetdock command handles status, updates and diagnostics."
         />
 
-        <ol className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <ol className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
           {steps.map((step, i) => (
             <li key={step.title}>
               <Link

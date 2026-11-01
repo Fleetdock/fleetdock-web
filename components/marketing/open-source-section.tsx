@@ -5,10 +5,10 @@ import {
   SectionHeading,
 } from "@/components/shared/section";
 import { siteConfig } from "@/lib/site-config";
-import { getLatestVersion } from "@/lib/release";
+import { formatCount, getLatestVersion, getStarCount } from "@/lib/release";
 import { GitBranch, Heart, Scale, Tag } from "lucide-react";
 
-function getFacts(version: string) {
+function getFacts(version: string | null, stars: number | null) {
   return [
     {
       icon: Scale,
@@ -18,14 +18,14 @@ function getFacts(version: string) {
     },
     {
       icon: GitHubIcon,
-      label: "Source",
-      value: "Fleetdock/fleetdock",
+      label: stars !== null ? "GitHub stars" : "Source",
+      value: stars !== null ? formatCount(stars) : "Fleetdock/fleetdock",
       href: siteConfig.links.github,
     },
     {
       icon: Tag,
-      label: "Latest release",
-      value: version,
+      label: version ? "Latest release" : "Releases",
+      value: version ?? "On GitHub",
       href: siteConfig.links.releases,
     },
     {
@@ -38,7 +38,8 @@ function getFacts(version: string) {
 }
 
 export async function OpenSourceSection() {
-  const facts = getFacts(await getLatestVersion());
+  const [version, stars] = await Promise.all([getLatestVersion(), getStarCount()]);
+  const facts = getFacts(version, stars);
   return (
     <Section
       id="open-source"

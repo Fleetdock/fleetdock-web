@@ -1,0 +1,82 @@
+---
+title: Data browser
+description: Browse and edit rows, follow foreign keys, find any table across the fleet, undo edits, and put rows back from a backup.
+---
+
+The **Data browser** opens a database's tables and views in tabs: rows in an editable grid with
+search, filters, sorting and paging, the table's structure, and a SQL console. It works the same
+on MariaDB, MySQL and PostgreSQL.
+
+Which login it connects as is set per instance (**Data browsing connects as**, in the instance's
+settings): the admin login (only instance administrators may then browse), a dedicated login you
+create, or Fleetdock-managed roles confined to each database. See [Security](/docs/security).
+
+## Editing rows
+
+Edits stay pending in the tab until you save. Rows are identified by their primary key (or a
+`NOT NULL` unique key) and each change touches exactly one row or nothing. Tables without such a
+key are read-only here; use the SQL console. Generated columns are shown but cannot be edited.
+
+<Screenshot name="data-browser" />
+
+## Following foreign keys
+
+- A cell holding a foreign key links to the row it references. Composite keys are matched on all
+  their columns.
+- A row's menu lists **Referenced by**: the other tables whose foreign keys point at this row.
+  Picking one opens those rows, already filtered.
+
+## Finding a table or column anywhere
+
+Press <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>K</kbd> and type part of a table or column name. Fleetdock
+searches every database of the fleet and shows where each match lives (database, server, type);
+choosing one opens it in the Data browser.
+
+The index is refreshed in the background every `FLEETDOCK_CATALOG_REFRESH_INTERVAL` (30 minutes
+by default) and right after structure changes made in Fleetdock. Only databases you may open
+appear in the results.
+
+## Undo and change history
+
+Every insert, edit and delete saved in the Data browser is recorded with the row as it was
+before and after.
+
+<Screenshot name="data-browser-history" />
+
+- **Undo** appears in the confirmation right after saving.
+- The table's **Change history** (the clock button) lists every save with who made it, when, and
+  what changed. Undo a single row or a whole save from there.
+- If someone changed the row after your edit, Fleetdock tells you and asks before overwriting
+  their change.
+
+The journal is kept for `FLEETDOCK_ROW_CHANGE_RETENTION` (a week by default; `0` turns it off).
+
+<Callout type="warn">
+  Undo restores the rows you edited. It does not revert what triggers or cascading deletes did
+  to other rows, and changes made in the SQL console or by CSV import are not journaled.
+</Callout>
+
+## Compare with a backup
+
+A table's **⋯ → Compare with a backup…** answers "what changed since last night?" and lets you
+put individual rows back:
+
+1. Pick a completed backup. Fleetdock restores it into a temporary database on the **same
+   server** (named `fds_…`). This takes about as long as a restore.
+2. **Compare** lists the rows changed, deleted or added since the backup, matched by primary key,
+   with the columns that differ. Large tables are compared in steps; **Find more** continues.
+3. Tick rows and **Restore from backup**: changed rows get the backup's values, deleted rows come
+   back, and rows added since are deleted (you confirm that separately).
+
+Each restored row is checked first: if it changed again since you compared, it is skipped rather
+than overwritten. A restore is recorded as one save in the change history, so **Undo** reverts it.
+
+The temporary database is dropped after `FLEETDOCK_BACKUP_COPY_TTL` (two hours by default).
+**Keep longer** extends it up to a day; **Discard** drops it now. Only one copy per database
+exists at a time.
+
+<Callout type="info">
+  Opening a backup needs `backup:write` on the database; restoring rows needs `database:write`.
+  The copy uses disk on the production server while it exists, and backups larger than
+  `FLEETDOCK_BACKUP_COPY_MAX_BYTES` (10 GiB by default) are refused.
+</Callout>

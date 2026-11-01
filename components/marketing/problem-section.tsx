@@ -2,11 +2,7 @@ import {
   Terminal,
   FileClock,
   KeyRound,
-  Boxes,
   ArrowRightLeft,
-  Gauge,
-  ScrollText,
-  CircleDollarSign,
 } from "lucide-react";
 import { Container, Section, SectionHeading } from "@/components/shared/section";
 
@@ -22,34 +18,14 @@ const problems = [
     body: "Backups run from ad-hoc crontabs with no shared status. You find out a job stopped when a restore fails.",
   },
   {
-    icon: ScrollText,
-    title: "Undocumented restore steps",
-    body: "Restores depend on tribal knowledge and one-off scripts, so they are slow and risky exactly when they matter most.",
-  },
-  {
     icon: KeyRound,
     title: "Unsafe credential handling",
     body: "Database passwords end up in env files, chat messages, and wikis with no rotation or central control.",
   },
   {
-    icon: Boxes,
-    title: "No central inventory",
-    body: "No single answer to which database runs on which node, at what version, with how much headroom left.",
-  },
-  {
     icon: ArrowRightLeft,
     title: "Risky server migrations",
     body: "Moving a database means hand-assembling dump, transfer, and import steps — and hoping nothing drifts.",
-  },
-  {
-    icon: Gauge,
-    title: "Limited capacity visibility",
-    body: "CPU, memory, and disk are checked per host, so you notice a node is full only after it starts failing.",
-  },
-  {
-    icon: CircleDollarSign,
-    title: "Expensive managed databases",
-    body: "Managed cloud databases solve the operations problem but get costly at scale and take away infrastructure ownership.",
   },
 ];
 

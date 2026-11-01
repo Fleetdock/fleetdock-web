@@ -10,7 +10,7 @@ export const useCases = [
     title: "Database-per-tenant SaaS",
     summary: "Manage isolated databases for every customer from one control plane.",
     detail:
-      "Run hundreds or thousands of isolated customer databases across your servers. Provision a new instance per tenant, back each one up on a schedule, and see the whole fleet's health in one place — without a spreadsheet of hosts.",
+      "Run hundreds of isolated customer databases across your servers. Provision a new instance per tenant, back each one up on a schedule, and see the whole fleet's health in one place — without a spreadsheet of hosts.",
   },
   {
     icon: Building2,

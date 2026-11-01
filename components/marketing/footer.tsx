@@ -84,10 +84,14 @@ export async function Footer() {
             >
               {siteConfig.license.name}
             </a>
-            <span aria-hidden className="text-border-strong">
-              •
-            </span>
-            <span>{version}</span>
+            {version ? (
+              <>
+                <span aria-hidden className="text-border-strong">
+                  •
+                </span>
+                <span>{version}</span>
+              </>
+            ) : null}
           </p>
         </div>
       </Container>

@@ -48,7 +48,7 @@ function createPageNameFn(version: DocVersionId): NonNullable<
         this.document.paths?.[entry.item.path]?.[entry.item.method];
       if (operation?.operationId) return operation.operationId;
 
-      let filePath = stripVersionFromApiFilePath(
+      const filePath = stripVersionFromApiFilePath(
         this.routePathToFilePath(entry.item.path),
         version,
       );

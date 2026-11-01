@@ -30,6 +30,8 @@ agent moves the bytes but never receives your storage credentials — the Manage
 the presigned URL. Fleetdock records the object location, a SHA-256 checksum, and the backup
 size.
 
+<Screenshot name="backups" />
+
 ## Manual backups
 
 From a database's detail page, trigger a backup. It appears as an operation with status and
@@ -57,11 +59,19 @@ reports a problem as a message. If the connection breaks mid-way, the file is tr
 The API equivalents are `POST /v1/databases/{id}/dump/check` and
 `GET /v1/databases/{id}/dump`.
 
+## Compare a table with a backup
+
+To see what changed in one table since a backup, and put single rows back without restoring
+the whole database, use **Compare with a backup…** in the Data browser. See
+[Data browser](/docs/data-browser#compare-with-a-backup).
+
 ## Scheduled backups
 
 Create recurring backups on the **Schedules** page. Each schedule targets a database, runs
 on a cron cadence, and has a **retention window**. The worker enqueues scheduled backups and
 prunes expired ones.
+
+<Screenshot name="backup-schedules" />
 
 ## Retention
 

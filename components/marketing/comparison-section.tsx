@@ -6,16 +6,13 @@ import { cn } from "@/lib/utils";
 const columns = ["Manual operations", "Managed cloud database", siteConfig.name];
 
 const rows: { capability: string; values: [string, string, string] }[] = [
-  { capability: "Infrastructure ownership", values: ["Yes", "No", "Yes"] },
-  { capability: "Central management", values: ["Limited", "Yes", "Yes"] },
-  { capability: "Multi-server visibility", values: ["Manual", "Provider-specific", "Yes"] },
-  { capability: "Automated backups", values: ["Custom scripts", "Included", "Centralized"] },
-  {
-    capability: "Database migration",
-    values: ["Manual", "Provider-specific", "Controlled workflow"],
-  },
-  { capability: "Vendor lock-in", values: ["Low", "High", "Low"] },
-  { capability: "Operational effort", values: ["High", "Low", "Reduced"] },
+  { capability: "Where your data and credentials live", values: ["Your servers", "The provider's cloud", "Your servers"] },
+  { capability: "One view of every database", values: ["Spreadsheets and SSH", "Per provider and region", "Yes, across all servers"] },
+  { capability: "Browse and edit data", values: ["CLI or a desktop client per host", "Separate tool", "In the browser, with undo"] },
+  { capability: "Run SQL on many databases", values: ["Shell loops", "Not built in", "Fleet query, up to 500 at once"] },
+  { capability: "Backups", values: ["Cron jobs you maintain", "Included", "Scheduled, to your own bucket, test-restored"] },
+  { capability: "Move a database to another server", values: ["Dump, copy, import by hand", "Within one provider", "Backup, restore, verify in one step"] },
+  { capability: "Cost", values: ["Your time", "Grows with every database", "Free and open source"] },
 ];
 
 export function ComparisonSection() {

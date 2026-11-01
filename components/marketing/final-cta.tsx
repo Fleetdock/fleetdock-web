@@ -17,16 +17,15 @@ export function FinalCta() {
               Stop managing databases one server at a time.
             </h2>
             <p className="mt-4 text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg">
-              Connect your infrastructure, standardize database operations, and manage every
-              instance from one control plane.
+              One command installs it on your own server. Connect your first database in a minute.
             </p>
             <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
               <Link
-                href={siteConfig.links.docs}
+                href={siteConfig.links.getStarted}
                 className={cn(buttonVariants({ size: "lg" }), "w-full sm:w-auto")}
               >
                 <BookOpen aria-hidden />
-                Read the documentation
+                Get started
               </Link>
               <a
                 href={siteConfig.links.github}

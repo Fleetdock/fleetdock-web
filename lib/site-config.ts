@@ -36,12 +36,6 @@ export const siteConfig = {
     url: `${GITHUB_REPO}/blob/main/LICENSE`,
   },
 
-  /**
-   * Shown only when the latest release cannot be read from GitHub — the site
-   * normally displays the live tag (see `getLatestVersion` in lib/release.ts).
-   */
-  fallbackVersion: "v0.0.0-test",
-
   maintainer: {
     name: "Fleetdock",
     url: "https://github.com/Fleetdock",

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Hero } from "@/components/marketing/hero";
 import { ProblemSection } from "@/components/marketing/problem-section";
+import { FeatureShowcase } from "@/components/marketing/feature-showcase";
+import { FaqSection } from "@/components/marketing/faq-section";
 import { DatabaseOperations } from "@/components/marketing/database-operations";
 import { ArchitectureSection } from "@/components/marketing/architecture-section";
 import { HowItWorks } from "@/components/marketing/how-it-works";
@@ -22,7 +24,7 @@ export const metadata: Metadata = createMetadata({
 const organizationId = `${siteConfig.url}/#organization`;
 
 /** Organization, WebSite, and SoftwareApplication structured data. */
-function homeJsonLd(version: string) {
+function homeJsonLd(version: string | null) {
   return {
     "@context": "https://schema.org",
     "@graph": [
@@ -51,9 +53,7 @@ function homeJsonLd(version: string) {
         description: siteConfig.metaDescription,
         url: siteConfig.url,
         image: `${siteConfig.url}/opengraph-image`,
-        ...(version !== siteConfig.fallbackVersion
-          ? { softwareVersion: version.replace(/^v/, "") }
-          : {}),
+        ...(version ? { softwareVersion: version.replace(/^v/, "") } : {}),
         downloadUrl: siteConfig.links.releases,
         releaseNotes: siteConfig.links.changelog,
         license: siteConfig.links.license,
@@ -71,14 +71,16 @@ export default async function HomePage() {
     <>
       <JsonLd data={homeJsonLd(version)} />
       <Hero />
+      <FeatureShowcase />
+      <HowItWorks />
       <ProblemSection />
+      <ComparisonSection />
       <DatabaseOperations />
       <ArchitectureSection />
-      <HowItWorks />
-      <UseCasesSection />
-      <ComparisonSection />
       <SecuritySection />
+      <UseCasesSection />
       <OpenSourceSection />
+      <FaqSection />
       <FinalCta />
     </>
   );
