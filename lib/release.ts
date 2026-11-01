@@ -1,17 +1,15 @@
-import { siteConfig } from "@/lib/site-config";
-
 const LATEST_RELEASE_API =
   "https://api.github.com/repos/Fleetdock/fleetdock/releases/latest";
 
 /**
  * The tag of the latest published Fleetdock release (e.g. "v0.8.0"), read
  * from GitHub Releases and refreshed at most once an hour — so a new release
- * appears on the site without a redeploy. Falls back to
- * `siteConfig.fallbackVersion` when GitHub cannot be reached or rate-limits
- * the request; set GITHUB_TOKEN at build/runtime to lift the unauthenticated
+ * appears on the site without a redeploy. Null when GitHub cannot be reached
+ * or rate-limits the request: callers then show no version rather than a
+ * made-up one. Set GITHUB_TOKEN at build/runtime to lift the unauthenticated
  * limit.
  */
-export async function getLatestVersion(): Promise<string> {
+export async function getLatestVersion(): Promise<string | null> {
   try {
     const res = await fetch(LATEST_RELEASE_API, {
       headers: {
@@ -27,9 +25,9 @@ export async function getLatestVersion(): Promise<string> {
       if (typeof tag === "string" && tag.length > 0) return tag;
     }
   } catch {
-    // Network failure: fall through to the bundled version.
+    // Network failure: no version rather than a wrong one.
   }
-  return siteConfig.fallbackVersion;
+  return null;
 }
 
 /**

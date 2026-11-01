@@ -33,13 +33,17 @@ export async function Hero() {
             rel="noopener noreferrer"
             className="group mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-elevated px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
           >
-            <span className="flex items-center gap-1.5 font-medium text-foreground">
-              <span className="size-1.5 rounded-full bg-success" aria-hidden />
-              {version}
-            </span>
-            <span aria-hidden className="text-border-strong">
-              •
-            </span>
+            {version ? (
+              <>
+                <span className="flex items-center gap-1.5 font-medium text-foreground">
+                  <span className="size-1.5 rounded-full bg-success" aria-hidden />
+                  {version}
+                </span>
+                <span aria-hidden className="text-border-strong">
+                  •
+                </span>
+              </>
+            ) : null}
             <span>Free and open source</span>
             <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" aria-hidden />
           </a>

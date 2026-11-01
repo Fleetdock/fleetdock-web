@@ -8,7 +8,7 @@ import { siteConfig } from "@/lib/site-config";
 import { formatCount, getLatestVersion, getStarCount } from "@/lib/release";
 import { GitBranch, Heart, Scale, Tag } from "lucide-react";
 
-function getFacts(version: string, stars: number | null) {
+function getFacts(version: string | null, stars: number | null) {
   return [
     {
       icon: Scale,
@@ -24,8 +24,8 @@ function getFacts(version: string, stars: number | null) {
     },
     {
       icon: Tag,
-      label: "Latest release",
-      value: version,
+      label: version ? "Latest release" : "Releases",
+      value: version ?? "On GitHub",
       href: siteConfig.links.releases,
     },
     {

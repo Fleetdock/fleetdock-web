@@ -24,7 +24,7 @@ export const metadata: Metadata = createMetadata({
 const organizationId = `${siteConfig.url}/#organization`;
 
 /** Organization, WebSite, and SoftwareApplication structured data. */
-function homeJsonLd(version: string) {
+function homeJsonLd(version: string | null) {
   return {
     "@context": "https://schema.org",
     "@graph": [
@@ -53,9 +53,7 @@ function homeJsonLd(version: string) {
         description: siteConfig.metaDescription,
         url: siteConfig.url,
         image: `${siteConfig.url}/opengraph-image`,
-        ...(version !== siteConfig.fallbackVersion
-          ? { softwareVersion: version.replace(/^v/, "") }
-          : {}),
+        ...(version ? { softwareVersion: version.replace(/^v/, "") } : {}),
         downloadUrl: siteConfig.links.releases,
         releaseNotes: siteConfig.links.changelog,
         license: siteConfig.links.license,
