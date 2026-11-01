@@ -1,6 +1,6 @@
 ---
 title: Data browser
-description: Browse and edit rows, follow foreign keys, find any table across the fleet, undo edits, and put rows back from a backup.
+description: Browse, filter and edit rows in full screen, follow foreign keys, find any table across the fleet, undo edits, and put rows back from a backup.
 ---
 
 The **Data browser** opens a database's tables and views in tabs: rows in an editable grid with
@@ -19,6 +19,41 @@ key are read-only here; use the SQL console. Generated columns are shown but can
 
 <Screenshot name="data-browser" />
 
+## Full screen
+
+The button at the end of the tab bar, or <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd>, hides
+Fleetdock's sidebar and top bar so the tables use the whole window. Your browser remembers the
+choice. In full screen the bar also has the theme switch and a button for the browser's own full
+screen. Press the shortcut again, or the button, to bring the sidebar back.
+
+## Columns and rows
+
+- **Columns** in the toolbar picks the columns to show; **Hide column** in a column header's menu
+  (right-click) hides one. **Freeze columns up to here** keeps the first columns in place while
+  you scroll sideways. Both are remembered with the tab.
+- The **row panel** (the rows button in the toolbar, or <kbd>Shift</kbd>+<kbd>Enter</kbd> on a
+  row) shows the selected row as a form: every column with its type and full value. Edit any
+  field there; the change joins the tab's pending edits. Arrows move to the previous and next
+  row.
+- **⋯ → Taller rows** switches to roomier rows; **Compact rows** switches back.
+- Pages of up to 500 rows scroll smoothly: only the rows in view are drawn.
+
+## Filters and export
+
+**Filter** builds conditions on columns; all of them must match. Besides `=`, `≠`, `<`, `≤`, `>`, `≥`,
+*contains* and *starts with*, there are:
+
+- *is one of* and *is none of*, with a list of values separated by commas (up to 1000);
+- *between*, with a from and a to (both included);
+- *ends with* and *doesn't contain*;
+- *is NULL* and *is not NULL*.
+
+A column header's menu has **Filter…**, which opens the editor on that column. Click a filter
+chip above the grid to change it.
+
+**⋯ → Export matching rows (CSV)** downloads the rows the filters, search and sort select, all
+of them, not only the page on screen. Without filters it exports the whole table.
+
 ## Following foreign keys
 
 - A cell holding a foreign key links to the row it references. Composite keys are matched on all
@@ -35,6 +70,21 @@ choosing one opens it in the Data browser.
 The index is refreshed in the background every `FLEETDOCK_CATALOG_REFRESH_INTERVAL` (30 minutes
 by default) and right after structure changes made in Fleetdock. Only databases you may open
 appear in the results.
+
+## Keyboard
+
+Press <kbd>?</kbd> anywhere for the full list. The most useful ones:
+
+| Keys | Does |
+| ---- | ---- |
+| <kbd>Ctrl</kbd>+<kbd>P</kbd> | Find a table |
+| <kbd>Alt</kbd>+<kbd>N</kbd> | New SQL query |
+| <kbd>Alt</kbd>+<kbd>[</kbd> / <kbd>]</kbd>, <kbd>Alt</kbd>+<kbd>1…9</kbd> | Previous / next tab, go to a tab |
+| <kbd>Alt</kbd>+<kbd>PgUp</kbd> / <kbd>PgDn</kbd> | Previous / next page of rows |
+| <kbd>Enter</kbd> or <kbd>F2</kbd> | Edit the cell |
+| <kbd>Shift</kbd>+<kbd>Enter</kbd> | Row panel |
+| <kbd>Ctrl</kbd>+<kbd>S</kbd> | Save the tab's changes |
+| <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd> | Full screen |
 
 ## Undo and change history
 
