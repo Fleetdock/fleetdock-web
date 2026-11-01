@@ -1,0 +1,65 @@
+---
+title: Audit log
+description: Who did what and when in Fleetdock, with IP address, client and outcome; filters, CSV export and retention.
+---
+
+**Activity → Audit log** lists the changes made through Fleetdock, newest first, and who made
+them. Owners and admins can read it; it needs the `audit:read` permission.
+
+## What is recorded
+
+- **Sign-ins**, including failed ones (with the email that was tried), sign-outs, profile
+  and password changes.
+- **Access**: users, roles, role grants, API tokens and agent install tokens.
+- **Infrastructure**: servers and their agent tokens, database servers (connect, create,
+  start, stop, restart, remove, import), databases (create, lock, unlock, delete, move), public
+  access, application credentials, database users and privileges, killed queries.
+- **Data**: console scripts that write (the script itself, up to 4 KB), rows inserted, edited
+  or deleted in the data browser and their undo, CSV and SQL imports, rows restored from a
+  backup, exports and dumps, table and index changes, schema tracking, fleet queries.
+- **Backups**: backups started, restored, verified, deleted and downloaded; backup storage and
+  schedules; notification channels and alert rules.
+
+Reads are not recorded, and neither are console scripts that only read or previews (which
+are always rolled back).
+
+A request refused for lack of permission is kept as **Denied**, so attempts are visible too.
+Failed sign-ins are **Failed**.
+
+Each event has:
+
+- who: the user, marked **API token** when an API token was used (the token is in the
+  details), or **CLI** for `fleetdock reset-admin-password` on the host;
+- the IP address and the browser or client. Behind a reverse proxy, set
+  `FLEETDOCK_TRUST_PROXY_HEADERS=true` to record the client's address rather than the
+  proxy's;
+- what was done and to which resource, with its name at the time;
+- details such as the table or the SQL script. Secrets (passwords, new API tokens) are never
+  recorded.
+
+## Finding events
+
+Filter by period (the last 7 days by default), kind of action, user and result. Open an event
+for its details. A database's **⋯ → Audit log** shows that database's events.
+
+**Export CSV** downloads every event matching the filters, up to 10 000, for a spreadsheet,
+an archive or your SIEM.
+
+The API is `GET /v1/audit-events` (filters: `actor`, `action` — exact or a category such as
+`user.` —, `resource_type`, `resource_id`, `outcome`, `since`, `until`; paged with `cursor`;
+`format=csv` for the export).
+
+## Retention and integrity
+
+Events are kept for `FLEETDOCK_AUDIT_RETENTION` (365 days by default; `0` keeps them forever)
+and removed by the background worker after that.
+
+The table is append-only: a database trigger refuses any change except that retention and
+unlinking a deleted user, whose events keep their email. Back up the metadata database to
+keep the trail beyond retention.
+
+<Callout type="warn">
+  Console scripts are recorded as written. If someone runs `CREATE USER … PASSWORD '…'` in the
+  SQL console, that password is in the audit log, readable by everyone with `audit:read`.
+  Use **Access** on the database page to manage database users instead.
+</Callout>

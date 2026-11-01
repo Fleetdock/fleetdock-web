@@ -1,0 +1,47 @@
+---
+title: ER diagram
+description: See a database's tables, columns, keys and the foreign keys between them as an entity-relationship diagram.
+---
+
+A database's **Diagram** tab draws its entity-relationship diagram (ERD): every table and view
+with its columns, and a line for every foreign key between them. Fleetdock reads it from the
+database itself, so it is always the current structure, whichever tool created it.
+
+## Reading the diagram
+
+- Each card is a table, or a view with a dashed border. The header shows its name (on
+  PostgreSQL with the schema) and the engine's row estimate.
+- Columns are listed in order with their type. A key icon marks the primary key, a link icon
+  a column used by a foreign key, and `?` a column that accepts `NULL`. Very wide tables list
+  their first 24 columns plus every key column, and say how many more there are.
+- An arrow runs from the referencing column to the column it references: from
+  `orders.customer_id` to `customers.id`. A **dashed** line is an optional relation, where
+  every referencing column accepts `NULL`.
+
+Click a table to highlight its relations and the columns they join; everything else fades.
+Double-click a table, or click its name, to open it in the [data browser](/docs/data-browser).
+
+## Large databases
+
+- **Find a table** centres the diagram on it.
+- **Neighbours** shows one table and the tables 1, 2 or 3 relations away. A database with
+  more than 150 tables opens this way, on its most connected table.
+- On PostgreSQL, the schema menu narrows the diagram to one schema.
+
+Small databases are laid out left to right, referencing tables before the tables they
+reference; larger ones are arranged around their most referenced tables. Drag cards where you
+want them: positions are kept in your browser until you press **Re-layout**.
+
+## Export
+
+The download menu saves the diagram as **PNG** or **SVG**, the whole diagram at full size,
+for documentation or a design review.
+
+## Permissions and limits
+
+The diagram shows what your own data access can see, like the data browser: tables you
+cannot read are not drawn, and neither are relations to them. Up to 5000 tables, 100000
+columns and 20000 foreign keys are read; a larger database shows a notice that only part of
+it is drawn.
+
+The data comes from `GET /v1/databases/{id}/diagram`.

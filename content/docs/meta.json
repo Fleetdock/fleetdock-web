@@ -20,11 +20,13 @@
     "sql-console",
     "fleet-query",
     "schema-history",
+    "er-diagram",
     "performance",
     "---Platform---",
     "networking",
     "external-access",
     "security",
+    "audit-log",
     "troubleshooting",
     "api"
   ]

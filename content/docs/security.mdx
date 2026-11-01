@@ -73,15 +73,8 @@ dedicated TCP ports with CIDR enforcement at the proxy layer.
 - **Application credentials** (scoped users with `readonly`, `readwrite`, or `admin`
   profiles) are used for external apps — instance root credentials are never exposed for
   public use.
-- Connectivity changes, credential creation, rotation, and revocation are written to an
-  append-only `audit_events` table (an `UPDATE`/`DELETE` trigger forbids mutation).
-
-<Callout type="info">
-  Those events are **recorded but not yet readable**: there is no API endpoint
-  and no dashboard page for them in the current release. To inspect them today,
-  query `audit_events` on the metadata database directly (`fleetdock psql`).
-  Surfacing them in the API and UI is planned.
-</Callout>
+- Connectivity changes, credential creation, rotation, and revocation are recorded in the
+  [audit log](/docs/audit-log), with every other change made through Fleetdock.
 
 See [External database access](/docs/external-access) for setup and TLS behavior (TCP
 passthrough in the current MVP).
