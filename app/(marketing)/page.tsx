@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Hero } from "@/components/marketing/hero";
 import { ProblemSection } from "@/components/marketing/problem-section";
+import { FeatureShowcase } from "@/components/marketing/feature-showcase";
+import { FaqSection } from "@/components/marketing/faq-section";
 import { DatabaseOperations } from "@/components/marketing/database-operations";
 import { ArchitectureSection } from "@/components/marketing/architecture-section";
 import { HowItWorks } from "@/components/marketing/how-it-works";
@@ -71,14 +73,16 @@ export default async function HomePage() {
     <>
       <JsonLd data={homeJsonLd(version)} />
       <Hero />
+      <FeatureShowcase />
+      <HowItWorks />
       <ProblemSection />
+      <ComparisonSection />
       <DatabaseOperations />
       <ArchitectureSection />
-      <HowItWorks />
-      <UseCasesSection />
-      <ComparisonSection />
       <SecuritySection />
+      <UseCasesSection />
       <OpenSourceSection />
+      <FaqSection />
       <FinalCta />
     </>
   );

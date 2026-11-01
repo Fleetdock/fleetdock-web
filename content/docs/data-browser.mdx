@@ -17,6 +17,8 @@ Edits stay pending in the tab until you save. Rows are identified by their prima
 `NOT NULL` unique key) and each change touches exactly one row or nothing. Tables without such a
 key are read-only here; use the SQL console. Generated columns are shown but cannot be edited.
 
+<Screenshot name="data-browser" />
+
 ## Following foreign keys
 
 - A cell holding a foreign key links to the row it references. Composite keys are matched on all
@@ -38,6 +40,8 @@ appear in the results.
 
 Every insert, edit and delete saved in the Data browser is recorded with the row as it was
 before and after.
+
+<Screenshot name="data-browser-history" />
 
 - **Undo** appears in the confirmation right after saving.
 - The table's **Change history** (the clock button) lists every save with who made it, when, and

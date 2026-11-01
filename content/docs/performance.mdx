@@ -34,6 +34,8 @@ A database server's **Monitoring → Top queries** lists the statements that cos
 sortable by total time, mean time or calls, and filterable by database. The query text is
 normalised by the server: literals are replaced by `?` or `$1`.
 
+<Screenshot name="instance-detail" />
+
 - **PostgreSQL** reads `pg_stat_statements`. Add it to `shared_preload_libraries` in
   `postgresql.conf`, restart, then run `CREATE EXTENSION pg_stat_statements;` in the `postgres`
   database. Until then, the tab explains what is missing.

@@ -20,6 +20,8 @@ see.
 **Preview** dry-runs a script that writes. It runs the whole script in one transaction that is
 always rolled back, and shows:
 
+<Screenshot name="sql-console" />
+
 - how many rows each statement would change;
 - for a single-table `UPDATE` or `DELETE`, up to 20 of the affected rows before and after, with
   changed cells highlighted.
@@ -41,6 +43,8 @@ numbers.
   shows its estimated rows and cost, with bars that show where the cost is. Nothing runs.
 - **Analyze** runs the statement (reads only) in a read-only transaction that is rolled back, and
   adds the actual rows and time per step.
+
+<Screenshot name="explain-plan" />
 
 Fleetdock flags the usual suspects: full scans of large tables, `Using filesort` /
 `Using temporary`, and row estimates off by 10× or more (stale statistics). **Raw** shows the

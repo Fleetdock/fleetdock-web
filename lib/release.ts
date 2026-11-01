@@ -31,3 +31,32 @@ export async function getLatestVersion(): Promise<string> {
   }
   return siteConfig.fallbackVersion;
 }
+
+/**
+ * The repository's star count, refreshed at most once an hour, or null when
+ * GitHub can't be reached — callers then show the repository name instead of
+ * a made-up number.
+ */
+export async function getStarCount(): Promise<number | null> {
+  try {
+    const res = await fetch("https://api.github.com/repos/Fleetdock/fleetdock", {
+      headers: {
+        Accept: "application/vnd.github+json",
+        ...(process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {}),
+      },
+      next: { revalidate: 3600 },
+    });
+    if (res.ok) {
+      const { stargazers_count: stars } = (await res.json()) as { stargazers_count?: unknown };
+      if (typeof stars === "number") return stars;
+    }
+  } catch {
+    // Network failure: no number rather than a wrong one.
+  }
+  return null;
+}
+
+/** formatCount renders 1234 as "1.2k". */
+export function formatCount(n: number): string {
+  return n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, "")}k` : String(n);
+}

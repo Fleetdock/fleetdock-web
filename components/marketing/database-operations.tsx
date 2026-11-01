@@ -46,7 +46,7 @@ const operations = [
     icon: KeyRound,
     title: "Manage credentials",
     body: "Create application credentials with scoped profiles for external apps. Instance and storage secrets are encrypted at rest; public access routes through the Fleetdock Gateway.",
-    href: "/docs/external-access",
+    href: "/docs/security",
   },
   {
     icon: Globe,

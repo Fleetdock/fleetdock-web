@@ -13,6 +13,8 @@ Turn on **Track changes** (needs `database:write`). Fleetdock takes the first sn
 After that it checks the structure every `FLEETDOCK_SCHEMA_SNAPSHOT_INTERVAL` (15 minutes by
 default; `0` turns the periodic checks off), and right after structure changes made in Fleetdock.
 
+<Screenshot name="schema-history" />
+
 Whenever the structure differs from the last snapshot, Fleetdock records a new one:
 
 - the timeline shows what was added, removed or changed (`+ column orders.note`,

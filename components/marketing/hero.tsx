@@ -6,7 +6,9 @@ import { cn } from "@/lib/utils";
 import { Container } from "@/components/shared/section";
 import { buttonVariants } from "@/components/ui/button";
 import { GitHubIcon } from "@/components/shared/icons";
-import { ProductPreview } from "./product-preview";
+import { InstallCommand } from "@/components/shared/install-command";
+import { Screenshot } from "@/components/shared/screenshot";
+import { EngineMark } from "./engine-mark";
 
 export async function Hero() {
   const version = await getLatestVersion();
@@ -33,54 +35,59 @@ export async function Hero() {
           >
             <span className="flex items-center gap-1.5 font-medium text-foreground">
               <span className="size-1.5 rounded-full bg-success" aria-hidden />
-              Open source
+              {version}
             </span>
             <span aria-hidden className="text-border-strong">
               •
             </span>
-            <span>Self-hosted · {version}</span>
+            <span>Free and open source</span>
             <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" aria-hidden />
           </a>
 
           <h1 className="text-balance text-4xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-5xl md:text-6xl">
-            Manage every database from one{" "}
-            <span className="text-accent">control plane</span>.
+            One dashboard for <span className="text-accent">all your databases</span>.
           </h1>
 
           <p className="mt-6 max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground">
-            Provision, monitor, back up, restore, and migrate self-hosted database
-            instances across your servers from one secure interface.
+            Browse and edit data, run SQL across hundreds of databases, schedule verified backups and
+            watch every server, for MariaDB, MySQL and PostgreSQL. Self-hosted, so your credentials
+            never leave your servers.
           </p>
 
-          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
-            <Link
-              href={siteConfig.links.getStarted}
-              className={cn(buttonVariants({ size: "lg" }), "w-full sm:w-auto")}
-            >
-              Get Started
+          <InstallCommand className="mt-8" />
+
+          <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row">
+            <Link href={siteConfig.links.getStarted} className={cn(buttonVariants({ size: "lg" }), "w-full sm:w-auto")}>
+              Get started
               <ArrowRight aria-hidden />
             </Link>
             <a
               href={siteConfig.links.github}
               target="_blank"
               rel="noopener noreferrer"
-              className={cn(
-                buttonVariants({ variant: "secondary", size: "lg" }),
-                "w-full sm:w-auto",
-              )}
+              className={cn(buttonVariants({ variant: "secondary", size: "lg" }), "w-full sm:w-auto")}
             >
               <GitHubIcon className="size-[18px]" />
-              View on GitHub
+              Star on GitHub
             </a>
           </div>
 
-          <p className="mt-5 text-sm text-muted-foreground">
-            Open source. Self-hosted. Built for database fleets.
-          </p>
+          <ul className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground" aria-label="Supported databases">
+            {siteConfig.engines.map((engine) => (
+              <li key={engine} className="flex items-center gap-2">
+                <EngineMark engine={engine} />
+                {engine}
+              </li>
+            ))}
+          </ul>
         </div>
 
-        <div className="relative mx-auto mt-14 max-w-5xl">
-          <ProductPreview />
+        <div className="relative mx-auto mt-14 max-w-6xl">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -inset-x-10 -bottom-10 top-16 rounded-[2rem] bg-accent/10 blur-3xl"
+          />
+          <Screenshot name="overview" url="/dashboard" priority className="relative" />
         </div>
       </Container>
     </section>
