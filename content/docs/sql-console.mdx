@@ -4,8 +4,14 @@ description: Run scripts with autocompletion, preview writes before they happen,
 ---
 
 The SQL console runs a script of one or more statements, separated by `;`, in order on one
-session. Reads return up to 200 rows per statement. Scripts that write ask for confirmation
-first, and a running script can be cancelled. Each user has their own history and saved queries.
+session. Scripts that write ask for confirmation first, and a running script can be cancelled.
+Each user has their own history and saved queries.
+
+The editor sits above the results; drag the separator between them (or focus it and use the
+arrow keys) to give either more room. Results appear in the same grid as tables: move with the
+keyboard, copy rows as TSV, JSON or `INSERT` statements, resize columns and sort by clicking a
+header (sorting happens in the browser, on the rows returned). The row limit next to **Run** sets
+how many rows a statement returns: 200, 1,000 or 5,000.
 
 A MySQL-style `DELIMITER` line lets you create procedures and triggers whose bodies contain `;`.
 

@@ -84,7 +84,7 @@ FLEETDOCK_GATEWAY_ADMIN_SOCKET=/var/lib/fleetdock/gateway/haproxy-admin.sock
 
 ## Enable public access per database
 
-On the database page → **Connectivity** → **Enable public access** with allowed CIDRs. Or
+On the database page → **Connection** tab → **Enable public access** with allowed CIDRs. Or
 use the API:
 
 - `POST /v1/databases/{id}/public-access` — enable with CIDR allowlist
@@ -106,7 +106,8 @@ stable across migrations — only the private backend target changes. See
 
 ## Application credentials
 
-Create scoped credentials under **Application credentials** on the database page (or via
+Create scoped credentials under **Application credentials** on the database page's
+**Connection** tab (or via
 `POST /v1/databases/{id}/credentials`). Passwords are encrypted at rest; the connection URL
 is shown **once** on create or rotate.
 
