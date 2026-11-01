@@ -121,6 +121,7 @@ Variables use the `FLEETDOCK_*` prefix. The most important ones:
 | `FLEETDOCK_TRUST_PROXY_HEADERS` | `false`               | Trust `X-Forwarded-For` for login rate limiting. Set only when the API is reachable *solely* through a proxy. |
 | `FLEETDOCK_HEARTBEAT_TIMEOUT` | `2m`                    | No heartbeat for this long ⇒ node `offline`.        |
 | `FLEETDOCK_METRICS_RETENTION` | `168h`                  | How long per-heartbeat metrics are kept.            |
+| `FLEETDOCK_AUDIT_RETENTION`   | `8760h`                 | How long [audit log](/docs/audit-log) events are kept (365 days). `0` keeps them forever. |
 | `FLEETDOCK_GATEWAY_ENABLED`   | `false`                 | Enable the Fleetdock Gateway (HAProxy) service.     |
 | `FLEETDOCK_GATEWAY_PUBLIC_HOST` | `FLEETDOCK_DOMAIN`    | Hostname external apps use to reach the gateway. Defaults to your main domain. |
 | `FLEETDOCK_GATEWAY_PORT_RANGE_START` | `15432`          | First port in the gateway's public port range.      |

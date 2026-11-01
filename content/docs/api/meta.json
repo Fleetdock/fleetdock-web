@@ -18,6 +18,7 @@
     "schedules",
     "moves",
     "notifications",
+    "audit",
     "agent",
     "install",
     "docs"

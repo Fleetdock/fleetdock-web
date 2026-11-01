@@ -201,8 +201,7 @@ TLS with the database directly, so the database must support it for `sslmode=req
 - CIDR allowlists are enforced in HAProxy (`tcp-request connection reject unless …`)
 - Explicit `0.0.0.0/0` is required for allow-from-anywhere — the UI warns when you choose it
 - Instance root credentials are never exposed for public use
-- Connectivity and credential changes are written to an append-only `audit_events` table
-  (not yet exposed through the API or dashboard — query it with `fleetdock psql`)
+- Connectivity and credential changes are recorded in the [audit log](/docs/audit-log)
 
 See [Security](/docs/security) for the full trust model.
 
