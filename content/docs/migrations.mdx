@@ -9,12 +9,14 @@ drop the source.
 
 ## Copy vs move
 
-Start a migration from a database's detail page (**Move**) and watch it on the **Moves**
-page.
+Start a migration from a database's page: **⋯ → Copy or move**. Pick the target database
+server (same engine family: PostgreSQL, or MySQL/MariaDB), an optional new database name, and
+the backup storage to carry the backup. Follow it on the **Activity** page.
 
-- Leave **drop source** unticked to make a **copy** — the original stays in place.
-- Tick **drop source** to make a true **move** — the source is dropped after a successful,
-  verified restore (a cutover).
+- Leave **Drop the source database after a successful, verified move** unticked to make a
+  **copy** — the original stays in place.
+- Tick it to make a true **move** — the source is dropped after a successful, verified
+  restore (a cutover).
 
 ## How the saga works
 
@@ -44,7 +46,9 @@ If you chose to move (not copy), the source database is dropped after verificati
 
 ## Prerequisites
 
-- The **destination instance** exists and is reachable from the executing side.
+- The **destination instance** exists, runs the same engine family, and is reachable from
+  the executing side.
+- **Backup storage** is configured (**Backups → Storage**).
 - The destination node has enough **disk capacity** for the copied data.
 - Valid credentials for both source and destination.
 
@@ -82,7 +86,7 @@ credentials.
 ## Validation
 
 The verify step (checksum + restored table count) gives you a concrete success signal before
-any source data is dropped. Review the operation on the **Moves** / **Operations** page.
+any source data is dropped. Review the task on the **Activity** page.
 
 ## Cleanup
 

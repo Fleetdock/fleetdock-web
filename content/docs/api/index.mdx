@@ -1,6 +1,6 @@
 ---
 title: API reference
-description: Fleetdock Manager HTTP API — authentication, endpoints, schemas, and an interactive playground.
+description: Fleetdock Manager HTTP API — authentication, errors, the 1.x stability promise, endpoints, schemas, and an interactive playground.
 ---
 
 The Fleetdock Manager exposes a REST API for provisioning databases, running backups,
@@ -21,17 +21,74 @@ Running the Go API directly for development, without the bundled proxy, it is
 
 ## Authentication
 
-Most `/v1` routes require a **Bearer token** in the `Authorization` header:
+`/v1` routes accept either of two credentials:
 
-- **JWT** — obtained from `POST /v1/auth/login` with email and password.
-- **API token** — long-lived tokens prefixed with `fleetd_`, created under **Profile → API tokens**.
+- **Bearer token** in the `Authorization` header — an **API token** (prefix `fleetd_`) created
+  under **Access → API tokens**, or a JWT from `POST /v1/auth/login`. Use this for scripts and
+  CI.
+- **Session cookie** (`fleetdock_session`) — what the dashboard uses. It is `HttpOnly` and
+  `SameSite=Strict`; every request other than `GET`, `HEAD` or `OPTIONS` authenticated by it
+  must also send `X-Fleetdock-CSRF: 1`, or it is refused with `403`. Bearer requests need no
+  such header.
+
+New API tokens expire after 90 days by default (choose 7 days to 1 year, or no expiry).
 
 Agent routes under `/agent/v1` use **agent bearer tokens** prefixed with `fleeta_`.
+`GET /metrics` takes the value of `FLEETDOCK_METRICS_TOKEN` as its bearer token (see
+[Monitoring](/docs/manager#monitoring)).
 
 <Callout type="info">
-  Public routes (health checks, install script, and this documentation) do not require
-  authentication.
+  Public routes (`/healthz`, `/readyz`, the agent install script, and the API docs) do not
+  require authentication.
 </Callout>
+
+## Errors
+
+Every error response has the same shape, for example:
+
+```json
+{
+  "error": {
+    "code": "invalid",
+    "message": "port must be between 1 and 65535",
+    "field": "port"
+  }
+}
+```
+
+`code` is one of `unauthorized`, `forbidden`, `not_found`, `conflict`, `invalid`,
+`rate_limited` or `internal`; `field` names the request field at fault for `invalid`. Match on
+`code` and the HTTP status, never on `message`, which is meant for people and may be reworded.
+
+## Stability promise
+
+From 1.0, the `/v1` API is stable for the whole 1.x line:
+
+- No endpoint, field, query parameter or error code documented in the OpenAPI spec is removed
+  or renamed within 1.x, and no field changes type or meaning.
+- New endpoints, optional request fields, response fields and enum values may be added in any
+  release, so **ignore fields you do not know**.
+- Errors keep the `{error: {code, message, field}}` envelope.
+- Anything that will go is first marked `deprecated: true` in the spec, answers with a
+  `Deprecation` header (and `Sunset` once a date is set), and is announced in the changelog at
+  least one minor release before the major release that removes it.
+- A control plane accepts agents from its own minor version and the one before
+  (`min_agent_version` in `GET /v1/version`), so agents can be
+  [updated](/docs/agents#update) after the Manager.
+
+Undocumented routes (the dashboard's own) are not covered. The full policy is in
+[RELEASING.md](https://github.com/Fleetdock/fleetdock/blob/main/RELEASING.md#compatibility-promise-from-10).
+
+`GET /v1/version` reports the running version and commit, and the oldest supported agent
+version.
+
+### Removed in 1.0
+
+- `POST /v1/instances/{id}/test-connection` and `POST /v1/instances/{id}/import-databases`.
+  Use `POST /v1/instances/{id}/probe`, which checks the connection and refreshes the database
+  list. Databases are also discovered automatically every minute.
+- `mariadb_version` in responses. Servers and database servers report `engine_version` only,
+  and registering a database server takes `engine_version`.
 
 ## Interactive playground
 

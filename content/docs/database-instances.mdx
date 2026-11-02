@@ -1,11 +1,11 @@
 ---
 title: Database instances
-description: Provision, register, and manage MariaDB, MySQL, and PostgreSQL instances — configuration, lifecycle, credentials, logs, and connecting external applications.
+description: Create, register, and connect MariaDB, MySQL, and PostgreSQL database servers — configuration, lifecycle, credentials, logs, and connecting external applications.
 ---
 
-An **instance** is a database server process that Fleetdock manages. Fleetdock supports
-**MariaDB, MySQL, and PostgreSQL** instances. This page covers provisioning new instances,
-the instance lifecycle, and connecting to them.
+An **instance** is a database server process that Fleetdock manages — the dashboard calls it a
+**database server**. Fleetdock supports **MariaDB, MySQL, and PostgreSQL**. This page covers
+adding database servers, their lifecycle, and connecting to them.
 
 ## Managed vs external instances
 
@@ -13,53 +13,77 @@ the instance lifecycle, and connecting to them.
   database Docker container it launches) or **registered** (an existing database on the
   node). Operations run through that node's agent against `127.0.0.1`.
 - **External** instances are databases you already host elsewhere. The control plane
-  connects to them directly and can **import** their existing databases.
+  connects to them directly, optionally through an SSH tunnel.
 
-## Provisioning a database instance
+Whichever kind, Fleetdock **discovers the databases** on it automatically once it has an admin
+login: right after you add it, then every minute.
 
-Open **Servers → your server → Add instance → Provision new**. Fleetdock launches a database
-container on the node for the engine you choose — MariaDB, MySQL, or PostgreSQL — with a
-named data volume and a published port.
+## Adding a database server
 
-### Configuration fields
+Open **Databases → Connect database server**, or **Add database server** on a server's page
+(which preselects that server). Choose one of three options:
 
-- **Engine** — MariaDB, MySQL, or PostgreSQL.
-- **Version** — the image version to run (the engine name doubles as the container image).
-- **Port assignment** — the port published on the server for client access (defaults to the
-  engine's standard port: `3306` for MariaDB/MySQL, `5432` for PostgreSQL).
-- **Storage** — a named Docker data volume backing the instance.
-- **Credentials** — a generated superuser password stored encrypted; you can create
-  additional users and grants afterward.
-- **Resource limits** — constrain the container's resource usage where supported.
+| Option | What it does |
+| --- | --- |
+| **Create a new one** | Fleetdock starts a fresh database server in Docker on one of your connected servers (provisioned). |
+| **Use one on my server** | A database server already runs on one of your connected servers; Fleetdock manages it through the agent (registered). |
+| **Connect to one anywhere** | Any database server Fleetdock can reach over the network — hosted, cloud, or on another machine (external). |
+
+### Fields
+
+- **On which server?** — the connected server, for the first two options.
+- **Engine** — PostgreSQL (the default), MySQL, or MariaDB.
+- **Version** — for a new server, the image version to run. The dashboard offers PostgreSQL
+  18, 17 (the default), 16, 15 and 14; MySQL 8.4; and MariaDB 11.8, 11.4 (the default), 10.11
+  and 10.6. For an existing server, the version running there.
+- **Name** — how it appears in Fleetdock, for example `production` or `analytics`.
+- **Port** — for a new server, the port it listens on, on its host (`5432` for PostgreSQL,
+  `3306` for MySQL and MariaDB by default); pick a free one. Otherwise, the port it already
+  listens on.
+- **Host** and an optional **SSH tunnel** — external servers only. On the same computer as
+  Fleetdock, use `host.docker.internal`; `localhost` would mean Fleetdock's own container.
+- **Admin user** and **Password** — existing servers only: an account allowed to create
+  databases and users. Fleetdock needs it to find databases, take backups and show
+  monitoring. You can add it later with **Add login** on the database server's page.
+- **Encryption** — how Fleetdock secures its connection: use encryption when available (the
+  default), always encrypt, always encrypt and verify the certificate, or never encrypt.
+- **Data browsing connects as** — the admin login, a dedicated login you create, or
+  Fleetdock-managed roles per database. See [Data browser](/docs/data-browser).
+
+For a new server, Fleetdock generates a strong admin password and keeps it encrypted, and
+starts it with a named Docker data volume and the published port. Follow its progress with
+**Follow progress**; it usually takes under a minute.
 
 <Callout type="info">
-  Provisioning requires Docker on the node. The agent installer installs Docker
-  automatically. All three engines — MariaDB, MySQL, and PostgreSQL — can be provisioned,
-  registered, or connected as external instances.
+  Creating a new database server requires Docker on the node; the agent installer installs it
+  automatically. MySQL 8.0, past its end of life, is no longer offered for new servers, but
+  existing MySQL 8.0 servers keep working.
 </Callout>
-
-## Registering an existing database
-
-Choose **Add instance → Register** (managed) to point Fleetdock at a database already
-running on the node, or **Add instance → External** to connect to a database hosted
-elsewhere. Use **Import DBs** to pull existing databases into Fleetdock's inventory.
 
 ## Status lifecycle
 
-A provisioned instance moves through states as you operate it. From its detail page you can:
+From a database server's page you can:
 
-- **Start / Stop / Restart** the underlying container.
-- **Inspect** its info, databases, and database users with their grants.
-- **Delete** the instance.
+- **Check now** — check the connection and look for new databases immediately, instead of
+  waiting for the next minute's check. The page shows when it was last checked and its health.
+- **Start**, **Restart** and **Stop** a server Fleetdock created (Restart and Stop are in the
+  **⋯** menu).
+- **Edit** its name, connection settings and login (**Add login** when it has none).
+- See its **Databases**, and with a login, **Monitoring** and **Database users** with their
+  grants.
+- **Remove…** it from Fleetdock.
 
-## Restarting, stopping, and deleting
+## Restarting, stopping, and removing
 
-Start, stop, and restart act on the provisioned container. Deleting removes the container
-and, if you confirm, its data volume.
+Start, stop, and restart act on the container of a server Fleetdock created. Stopping
+disconnects every application until you start it again; no data is deleted. Removing a server
+Fleetdock created stops and removes its container and, if you tick the option, deletes its data
+volume; otherwise the volume is kept and can be reattached later. Removing any other database
+server only removes it from Fleetdock — the server itself is not touched.
 
 <Callout type="error">
-  Deleting a provisioned instance removes its container. If you confirm removal of the data
-  volume, the databases on it are destroyed permanently. Back up first.
+  Deleting the data volume of a removed database server permanently destroys all of its
+  databases. Back up first.
 </Callout>
 
 ## Inspecting logs
@@ -70,8 +94,8 @@ Container-level logs are available on the node with standard Docker tooling:
 docker logs <container-name>
 ```
 
-Operation-level history (create, drop, backup, restore, connection test) is tracked on the
-**Operations** page for every instance.
+Task history (create, drop, backup, restore, move) is on the **Activity** page, and every change
+made through Fleetdock is in **Activity → Audit log**.
 
 ## Connecting from external applications
 
@@ -111,7 +135,7 @@ psql "postgresql://<user>@<server-address>:<published-port>/<database>"
 ### Public access via Fleetdock Gateway
 
 For applications **outside** your private network, enable **public access** on the database
-page (**Connectivity**). Fleetdock assigns a stable gateway endpoint
+page (**Connection** tab). Fleetdock assigns a stable gateway endpoint
 (`gateway.example.com:<port>`) and routes traffic through HAProxy with CIDR enforcement.
 
 <Callout type="info">

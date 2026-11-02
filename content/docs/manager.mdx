@@ -66,8 +66,8 @@ curl -sSL https://fleetdock.dev/install.sh | sudo sh -s -- \
 | `--dir <path>` | Install directory (default `/opt/fleetdock`) |
 
 Manage it afterwards with the `fleetdock` command it installs — `status`, `credentials`,
-`logs`, `update`, `domain`, `gateway`, `doctor`, `backup-db`, `backup-config`,
-`reset-admin-password`, `delete`. `fleetdock help` lists them all.
+`logs`, `update`, `version`, `domain`, `gateway`, `doctor`, `backup-db`, `backup-config`,
+`rotate-keys`, `reset-admin-password`, `delete`. `fleetdock help` lists them all.
 
 ### From source
 
@@ -115,10 +115,11 @@ Variables use the `FLEETDOCK_*` prefix. The most important ones:
 | `FLEETDOCK_DOMAIN`            | —                       | The one hostname everything else is derived from.   |
 | `FLEETDOCK_SITE_ADDRESS`      | —                       | Caddy site address. A bare host gets automatic TLS; `http://…` serves plain HTTP. |
 | `FLEETDOCK_JWT_SECRET`        | dev default             | Set a strong secret in production.                  |
-| `FLEETDOCK_ENCRYPTION_KEY`    | dev default             | Encrypts credentials and storage keys at rest.      |
+| `FLEETDOCK_ENCRYPTION_KEY`    | dev default             | Encrypts credentials and storage keys at rest. Rotate with `fleetdock rotate-keys`. |
 | `FLEETDOCK_PUBLIC_URL`        | `http://localhost:8080` | URL agents and installers use to reach the API.     |
 | `FLEETDOCK_CORS_ORIGIN`       | `http://localhost:3000` | Only used for split-origin deployments; a normal same-origin install never hits CORS. |
-| `FLEETDOCK_TRUST_PROXY_HEADERS` | `false`               | Trust `X-Forwarded-For` for login rate limiting. Set only when the API is reachable *solely* through a proxy. |
+| `FLEETDOCK_TRUST_PROXY_HEADERS` | `false`               | Take the client address from the last `X-Forwarded-For` entry. Set only when the API is reachable *solely* through a proxy. |
+| `FLEETDOCK_METRICS_TOKEN`     | —                       | Enables `GET /metrics` for scrapers sending it as a bearer token. Unset, the endpoint answers `404`. |
 | `FLEETDOCK_HEARTBEAT_TIMEOUT` | `2m`                    | No heartbeat for this long ⇒ node `offline`.        |
 | `FLEETDOCK_METRICS_RETENTION` | `168h`                  | How long per-heartbeat metrics are kept.            |
 | `FLEETDOCK_AUDIT_RETENTION`   | `8760h`                 | How long [audit log](/docs/audit-log) events are kept (365 days). `0` keeps them forever. |
@@ -157,17 +158,32 @@ db.example.com {
 }
 ```
 
+With nginx, set the header to the connecting address rather than appending to it — Fleetdock
+takes the client address from the **last** `X-Forwarded-For` entry:
+
+```nginx
+location / {
+    proxy_pass http://fleetdock:8080;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+
+If a CDN or another proxy sits in front of nginx, use nginx's `real_ip` module
+(`set_real_ip_from` and `real_ip_header`) so `$remote_addr` is the visitor, not the CDN.
+
 <Callout type="warn">
   Keep `FLEETDOCK_TRUST_PROXY_HEADERS=true` only while the API is reachable
   *solely* through the proxy. If port 8080 is also exposed, a client can spoof
-  `X-Forwarded-For` and bypass the login rate limiter.
+  `X-Forwarded-For` and bypass the sign-in rate limit.
 </Callout>
 
 ## Persistent storage
 
 The bundled Postgres writes to a Docker named volume (`postgres_data`). In production, your
 managed PostgreSQL provider is the source of truth — the metadata database holds users,
-server enrollment, encrypted credentials, backup destinations, and job history. Losing it
+server enrollment, encrypted credentials, backup storage settings, and task history. Losing it
 without a backup means re-enrolling every server and re-entering every external credential.
 
 ## Verify
@@ -177,16 +193,44 @@ curl -fsS https://db.example.com/healthz    # {"status":"ok"}
 curl -fsS https://db.example.com/readyz     # {"status":"ready"} once the DB is up
 ```
 
-Then sign in and change the bootstrap admin password on the **Profile** page. Interactive
+Then sign in and change the bootstrap admin password under **Settings → Your profile**. Interactive
 API docs are also available on this site under [API reference](/docs/api) (with an
 interactive playground). The Manager itself serves Redoc at `/docs` over the embedded
 OpenAPI spec.
+
+## Back up the metadata database
+
+The metadata database holds users, roles and API tokens, server enrollment, encrypted
+credentials, backup storage settings and task history. On an install made with the installer:
+
+```bash
+fleetdock backup-db                        # → /opt/fleetdock/backups/metadata-<time>.sql.gz
+fleetdock backup-db /mnt/offsite/meta.sql.gz
+fleetdock backup-db --keep 14              # also delete all but the newest 14 in backups/
+```
+
+Take one every night, keep two weeks, and copy them off the host — a backup on the same disk
+does not survive the disk. For example, in root's crontab:
+
+```text
+17 3 * * * /usr/local/bin/fleetdock backup-db --keep 14 && aws s3 sync /opt/fleetdock/backups s3://my-bucket/fleetdock-metadata/
+```
+
+(`rclone sync` or `restic` work the same way.) Restore into an empty database with
+`gunzip -c metadata-….sql.gz | fleetdock psql`.
+
+<Callout type="warn">
+  Stored credentials in the dump are encrypted with `FLEETDOCK_ENCRYPTION_KEY`. Keep the
+  `.env` alongside (`fleetdock backup-config`), or they are unreadable.
+</Callout>
+
+With managed PostgreSQL, use your provider's automated backups and test a restore at least once.
 
 ## Update
 
 ```bash
 fleetdock update              # latest
-fleetdock update --tag v0.2.0 # a specific release
+fleetdock update --tag v1.0.0 # a specific release
 ```
 
 `fleetdock update` backs up the metadata database first and stops if that fails.
@@ -194,19 +238,107 @@ fleetdock update --tag v0.2.0 # a specific release
 Or, from a source checkout:
 
 ```bash
-git fetch origin && git checkout v0.2.0
+git fetch origin && git checkout v1.0.0
 docker compose -f docker-compose.yml -f docker-compose.build.yml up --build -d
 ```
 
-Migrations run automatically on API start. Confirm `GET /readyz` returns `ready`, then spot
--check login and a connection test. Watch the **Operations** page for stuck jobs after an
-upgrade.
+Migrations run automatically on start. Then:
+
+1. Confirm `GET /readyz` returns `ready` and the sidebar shows the new version.
+2. Sign in and open the server list and a database.
+3. Watch **Activity** for stuck tasks.
+4. [Update the agents](/docs/agents#update) — servers with an older agent show **Update**.
+
+The Manager refuses to start, with a message saying what to do, when the metadata database
+**was migrated by a newer Fleetdock** (run the newer version, or roll back as below) or when a
+migration that was already applied **has changed** (Fleetdock records each migration's
+SHA-256). With `FLEETDOCK_RUN_MIGRATIONS=false` it also refuses to start while migrations are
+pending, so it never serves against a schema it does not match.
 
 <Callout type="warn">
-  Before upgrading, back up the metadata PostgreSQL database. If a migration has
-  already advanced the schema, roll back by restoring that database, not just
-  the API binary.
+  Migrations only move forward. To roll back, stop the new version, restore the metadata
+  backup taken before the upgrade, and start the previous image tag. Rolling back only the
+  binary does not work: from 1.0, an older version refuses to start on the newer schema.
 </Callout>
+
+Within 1.x, any release upgrades in place from any earlier 1.x release and from the last 0.9
+release. See the [compatibility promise](https://github.com/Fleetdock/fleetdock/blob/main/RELEASING.md#compatibility-promise-from-10).
+
+### Which version is running
+
+The dashboard shows it at the bottom of the sidebar. From the shell:
+
+```bash
+fleetdock version                           # installed with the installer
+docker compose exec fleetdock /api version  # Compose from source
+```
+
+The API reports it at `GET /v1/version` (signed in), with the oldest agent version it supports.
+
+### Verify a release
+
+Images and the `SHA256SUMS` file of each release are signed with
+[cosign](https://docs.sigstore.dev/) keyless signing, from the release workflow:
+
+```bash
+cosign verify ghcr.io/fleetdock/fleetdock:v1.0.0 \
+  --certificate-identity-regexp '^https://github.com/Fleetdock/fleetdock/\.github/workflows/release\.yml@refs/tags/v' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+```
+
+[RELEASING.md](https://github.com/Fleetdock/fleetdock/blob/main/RELEASING.md#verifying-a-release)
+also shows how to verify the checksum file.
+
+## Rotate the encryption key
+
+Stored credentials (database server passwords, SSH keys, backup storage keys, notification
+webhook URLs and SMTP passwords) are envelope-encrypted under `FLEETDOCK_ENCRYPTION_KEY`. To
+replace it:
+
+```bash
+fleetdock rotate-keys
+```
+
+It backs up the metadata database and `.env`, generates a new key under a new id, re-encrypts
+every stored credential's data key, then drops the old key. If anything fails, the previous
+`.env` is put back. Afterwards, keep a copy of the new `.env` (`fleetdock backup-config`):
+metadata backups taken before the rotation still need the old key, which is saved next to them
+as `backups/env-before-rotate-<time>`.
+
+For Compose from source, see [Secret storage and rotation](/docs/security#secret-storage-and-rotation).
+
+## Monitoring
+
+| Endpoint | Auth | Use |
+| --- | --- | --- |
+| `GET /healthz` | None | Liveness — the process is up |
+| `GET /readyz` | None | Readiness — the metadata database answers and, where the worker runs, it has run in the last 2 minutes |
+| `GET /metrics` | `FLEETDOCK_METRICS_TOKEN` as a bearer token | Prometheus metrics; `404` while the token is unset |
+
+Point your load balancer or uptime checker at `/healthz`, and use `/readyz` for
+dependency-aware routing.
+
+`/metrics` reports the build (`fleetdock_build_info`), HTTP requests and latency, finished
+operations by type and result (`fleetdock_operations_finished_total`), when the worker last ran
+(`fleetdock_worker_last_run_seconds`), and fleet gauges: servers online and offline, database
+servers, databases, backups and failed backups in the last 24 hours, running operations, and
+the time of the last backup. Set a long random token, then scrape with it:
+
+```bash
+fleetdock config set FLEETDOCK_METRICS_TOKEN "$(openssl rand -hex 32)"
+```
+
+```yaml
+scrape_configs:
+  - job_name: fleetdock
+    scheme: https
+    authorization: {credentials: "<FLEETDOCK_METRICS_TOKEN>"}
+    static_configs: [{targets: ["db.example.com"]}]
+```
+
+Worth alerting on: `/readyz` failing for more than 2 minutes, a full disk on the host, failed
+backups and backup checks, servers stuck `offline`, and database servers whose health is
+`unreachable`. The API writes structured JSON logs to stdout.
 
 ## Uninstall
 

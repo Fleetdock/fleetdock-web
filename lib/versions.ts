@@ -32,6 +32,7 @@ const NON_DEFAULT_VERSIONS = DOC_VERSIONS.filter(
 const SHARED_API_PATHS = new Set([
   "/healthz",
   "/readyz",
+  "/metrics",
   "/install.sh",
   "/openapi.yaml",
   "/docs",

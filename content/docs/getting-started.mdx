@@ -122,8 +122,9 @@ curl -sSL https://your-control-plane/install.sh | \
            FLEETDOCK_TOKEN=<registration-token> sh
 ```
 
-The installer downloads the agent binary from the control plane, installs the MariaDB and
-PostgreSQL client tools, ensures Docker is present, and starts a systemd service.
+The installer downloads the agent binary from the control plane and checks its SHA-256,
+installs the MariaDB and PostgreSQL client tools (MySQL databases are dumped with
+`mariadb-dump` too), ensures Docker is present, and starts a systemd service.
 
 ## 5. Verify node connectivity
 
@@ -143,28 +144,33 @@ systemctl status fleetdock-agent
 
 ## 6. Provision your first database instance
 
-Open **Servers → your server → Add instance → Provision new** and pick an engine — MariaDB,
-MySQL, or PostgreSQL. Fleetdock launches a database container with a generated superuser
-password, a named data volume, and a published port. See
-[Database instances](/docs/database-instances) for the configuration fields.
+Open **Databases → Connect database server** (or **Add database server** on your server's
+page) and choose **Create a new one**. Pick the server, an engine — MariaDB, MySQL, or
+PostgreSQL — and a version, give it a name and a free port, and select **Create database
+server**. Fleetdock starts a database container with a generated admin password and a named
+data volume, usually in under a minute.
+
+To bring in a database server you already run, choose **Use one on my server** or **Connect to
+one anywhere** instead and give it an admin login; Fleetdock then finds its databases on its
+own. See [Database instances](/docs/database-instances) for all the fields.
 
 ## 7. Configure backups
 
 <Steps>
 
 <Step>
-### Add a backup destination
+### Add backup storage
 
-Under **Destinations**, add an S3, Cloudflare R2, or S3-compatible bucket and run **Test
-bucket**. Storage keys are encrypted at rest.
+Under **Backups → Storage**, add an S3, Cloudflare R2, or S3-compatible bucket and run
+**Test**. Storage keys are encrypted at rest.
 
 </Step>
 
 <Step>
 ### Back up a database
 
-From a database's detail page, trigger a manual backup, or create a recurring **Schedule**
-with a retention window.
+From a database's page, choose **Back up now**, or create a recurring schedule with a
+retention window under **Backups → Schedules**.
 
 <Screenshot name="backups" />
 
@@ -174,8 +180,9 @@ with a retention window.
 
 ## 8. Verify database connectivity
 
-Provisioned instances publish a port on the server. Connect with your engine's client using
-the generated credentials shown in the instance details:
+Provisioned instances publish a port on the server. The **Connect** card on a database's
+**Overview** tab shows its address; create a login for your application on its **Connection**
+tab (application credentials), then connect with your engine's client:
 
 ```bash
 # MariaDB / MySQL
