@@ -26,6 +26,33 @@ Fleetdock's sidebar and top bar so the tables use the whole window. Your browser
 choice. In full screen the bar also has the theme switch and a button for the browser's own full
 screen. Press the shortcut again, or the button, to bring the sidebar back.
 
+## Schemas
+
+In a PostgreSQL database with several schemas, the picker above the table search chooses the
+schemas the list shows. Tick the ones you want, use **Only** to see one alone, or **All schemas**,
+which also includes schemas created later. Fleetdock remembers the choice per database, in your
+browser, and the [ER diagram](/docs/er-diagram) uses the same one. The first time, a database opens
+on `public`, or on its biggest schema when `public` has no tables.
+
+Searching the list still looks everywhere: when other schemas have matches, the last line says
+"7 more in other schemas"; **Show** lists them without changing your choice. Opening a table from
+elsewhere (a foreign key, <kbd>Ctrl</kbd>+<kbd>K</kbd>, a link) works whatever the choice.
+
+## Saved views
+
+The **Views** menu in a table's toolbar keeps a set-up of the table under a name: its filters,
+search, sort, hidden and frozen columns, column widths and rows per page.
+
+- **Save current view…** names it. Tick **Share with everyone who can open this database** to put
+  it in your colleagues' menus too.
+- Pick a view to apply it. The button then shows its name, with a dot once you change something;
+  **Update** saves your changes into it (your own views only).
+- The link button copies a link that opens the table in that view. People who can open the
+  database and see the view (it is yours, or shared) get the same rows.
+- Only the person who saved a view can rename, share or change it. A shared view can also be
+  deleted by someone who may change the database. Saving, changing and deleting views is
+  recorded in the [audit log](/docs/audit-log).
+
 ## Columns and rows
 
 - **Columns** in the toolbar picks the columns to show; **Hide column** in a column header's menu

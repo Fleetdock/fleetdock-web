@@ -25,12 +25,19 @@ database, and the full-screen button there also hides the browser's own toolbars
 Click a table to highlight its relations and the columns they join; everything else fades.
 Double-click a table, or click its name, to open it in the [data browser](/docs/data-browser).
 
+## Schemas
+
+On PostgreSQL, the diagram draws the schemas you chose, with the same choice as the data browser's
+table list. The schema menu in the toolbar changes it. A foreign key between a shown table and a
+table of another schema still appears: that table is drawn as a dashed card with
+**Show schema**, which adds its schema to the diagram.
+
 ## Large databases
 
 - **Find a table** centres the diagram on it.
 - **Neighbours** shows one table and the tables 1, 2 or 3 relations away. A database with
   more than 150 tables opens this way, on its most connected table.
-- On PostgreSQL, the schema menu narrows the diagram to one schema.
+- Choose fewer schemas (above) to draw less.
 
 Small databases are laid out left to right, referencing tables before the tables they
 reference; larger ones are arranged around their most referenced tables. Drag cards where you
