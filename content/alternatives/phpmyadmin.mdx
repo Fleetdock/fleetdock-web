@@ -45,7 +45,7 @@ faq:
   - q: "Does Fleetdock support PostgreSQL like phpMyAdmin supports MySQL?"
     a: "Yes. Fleetdock treats MariaDB, MySQL and PostgreSQL as first-class engines, with the same data browser, SQL console and backups for all three. phpMyAdmin is for MySQL and MariaDB only."
   - q: "Can I run Fleetdock on shared hosting like phpMyAdmin?"
-    a: "No. Fleetdock needs a Linux server with Docker, and 2 vCPU with 4 GB of RAM is enough to start. phpMyAdmin is a PHP application, so it runs on most web servers that have PHP."
+    a: "No. Fleetdock needs a Linux server with Docker, and 2 vCPU with 4 GB of RAM is enough to start. phpMyAdmin is a PHP application, so it runs on web servers with PHP 7.2.5 or newer."
   - q: "Is Fleetdock free like phpMyAdmin?"
     a: "Yes. Both are free and open source. Fleetdock is Apache-2.0 and phpMyAdmin is GPL v2; you host either one yourself."
   - q: "Can I keep phpMyAdmin and add Fleetdock?"
@@ -106,7 +106,7 @@ phpMyAdmin does not handle user management itself: you sign in with a database s
 - You run PostgreSQL alongside MySQL or MariaDB.
 - You need scheduled backups to your own bucket, with retention, restores and failure alerts.
 - You manage tens or hundreds of databases across several servers.
-- You want undo for data edits, write previews and an audit trail of who changed what. The audit log is documented in [Audit log](/docs/audit-log) and ships in the release after 0.9.0.
+- You want undo for data edits, write previews and an audit trail of who changed what. Every change is recorded in the [audit log](/docs/audit-log).
 
 ## Can you use them together?
 
