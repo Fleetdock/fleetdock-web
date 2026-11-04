@@ -8,7 +8,7 @@ import {
 
 /**
  * Plain-Markdown versions of the content pages for AI assistants and agents:
- * served at `<page>.md` and concatenated into /llms-full.txt. Fields the page
+ * exported as `<page>.md` files and concatenated into /llms-full.txt. Fields the page
  * template renders from frontmatter (verdict, comparison table, FAQ) are
  * written out here too, so the Markdown says everything the page says.
  */
@@ -42,9 +42,12 @@ export async function pageMarkdown(
   slugs: string[],
 ): Promise<string | null> {
   const page = markdownSections[section].getPage(slugs);
-  if (!page || page.type === "openapi") return null;
+  if (!page || (page as { type?: string }).type === "openapi") return null;
 
-  const data = page.data as typeof page.data & {
+  // Not an OpenAPI page (checked above), so it is an MDX page with text.
+  const data = page.data as {
+    title: string;
+    getText: (type: "processed") => Promise<string>;
     description?: string;
     date?: string;
     updated?: string;
@@ -82,6 +85,27 @@ export async function pageMarkdown(
 export function markdownParams(section: MarkdownSection): string[][] {
   return markdownSections[section]
     .getPages()
-    .filter((page) => page.type !== "openapi")
+    .filter((page) => (page as { type?: string }).type !== "openapi")
     .map((page) => page.slugs);
+}
+
+/**
+ * Page slugs as `.md` file paths for the static export: ["backups"] →
+ * ["backups.md"], and a section's index page [] → ["index.md"].
+ */
+export function toMarkdownFileSlug(slugs: string[]): string[] {
+  return slugs.length === 0 ? ["index.md"] : [...slugs.slice(0, -1), `${slugs.at(-1)}.md`];
+}
+
+export function fromMarkdownFileSlug(file: string[]): string[] {
+  const last = file.at(-1)?.replace(/\.md$/, "");
+  if (file.length === 1 && last === "index") return [];
+  return [...file.slice(0, -1), last ?? ""];
+}
+
+/** Route params for every Markdown file of every section. */
+export function markdownFiles(): { section: MarkdownSection; slug: string[] }[] {
+  return (Object.keys(markdownSections) as MarkdownSection[]).flatMap((section) =>
+    markdownParams(section).map((slugs) => ({ section, slug: toMarkdownFileSlug(slugs) })),
+  );
 }

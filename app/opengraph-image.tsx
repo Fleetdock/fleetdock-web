@@ -4,6 +4,9 @@ import { ImageResponse } from "next/og";
 import { siteConfig } from "@/lib/site-config";
 import { ogImageSize, renderOgImage } from "@/lib/og";
 
+// Rendered once at build time (static export).
+export const dynamic = "force-static";
+
 export const alt = siteConfig.title;
 export const size = ogImageSize;
 export const contentType = "image/png";

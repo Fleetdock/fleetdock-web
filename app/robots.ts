@@ -1,6 +1,9 @@
 import type { MetadataRoute } from "next";
 import { siteConfig } from "@/lib/site-config";
 
+// Rendered once at build time (static export).
+export const dynamic = "force-static";
+
 /**
  * AI search and assistant crawlers we explicitly welcome. Listing them states
  * the intent plainly (some hosts and CDNs block AI crawlers by default unless
@@ -28,9 +31,8 @@ const AI_CRAWLERS = [
   "YandexBot",
 ];
 
-// /api/ is the search and API-playground proxy; /md/ is the internal path
-// behind the public <page>.md URLs.
-const disallow = ["/api/", "/md/"];
+// /api/search is the docs search index, not a page.
+const disallow = ["/api/"];
 
 export default function robots(): MetadataRoute.Robots {
   return {

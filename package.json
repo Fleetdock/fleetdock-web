@@ -4,12 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && node scripts/postexport.mjs",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "fumadocs-mdx && tsc --noEmit",
     "sync:openapi": "cp ../fleetdock/backend/internal/openapi/openapi.yaml openapi/openapi.yaml",
-    "sync:install": "cp ../fleetdock/scripts/install.sh public/install.sh",
     "postinstall": "fumadocs-mdx",
     "indexnow": "node scripts/indexnow.mjs"
   },

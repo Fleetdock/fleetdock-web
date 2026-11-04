@@ -1,0 +1,96 @@
+# Build fleetdock.dev as static files and publish them to Cloudflare Pages.
+#
+# Secrets (Settings → Secrets and variables → Actions):
+#   CLOUDFLARE_API_TOKEN     required; a token with "Cloudflare Pages: Edit"
+#   CLOUDFLARE_ACCOUNT_ID    required
+#   GOOGLE_SITE_VERIFICATION, BING_SITE_VERIFICATION, YANDEX_SITE_VERIFICATION,
+#   INDEXNOW_KEY             optional; see app/layout.tsx and scripts/indexnow.mjs
+#
+# main deploys to production (fleetdock.dev); other branches and pull requests
+# get a preview at https://<branch>.fleetdock-web.pages.dev.
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    # Daily rebuild so the latest release and star count shown on the site
+    # stay current (they are read from GitHub at build time).
+    - cron: "17 4 * * *"
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  deployments: write
+
+env:
+  CLOUDFLARE_PROJECT: fleetdock-web
+  # At workflow level so step `if:` conditions can test whether they are set.
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+  INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Full history: the sitemap and structured data use each docs
+          # page's last commit date.
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: install
+        run: pnpm install --frozen-lockfile
+
+      - name: lint
+        run: pnpm lint
+
+      - name: typecheck
+        run: pnpm typecheck
+
+      - name: build
+        run: pnpm build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOOGLE_SITE_VERIFICATION: ${{ secrets.GOOGLE_SITE_VERIFICATION }}
+          BING_SITE_VERIFICATION: ${{ secrets.BING_SITE_VERIFICATION }}
+          YANDEX_SITE_VERIFICATION: ${{ secrets.YANDEX_SITE_VERIFICATION }}
+
+      # Deploy steps are skipped where secrets are unavailable (e.g. pull
+      # requests from forks); the build above still checks the change.
+      - name: create the Pages project on first run
+        if: ${{ env.CLOUDFLARE_API_TOKEN != '' }}
+        run: >
+          pnpm dlx wrangler@4 pages project list | grep -qw "$CLOUDFLARE_PROJECT" ||
+          pnpm dlx wrangler@4 pages project create "$CLOUDFLARE_PROJECT" --production-branch=main
+
+      - name: deploy to Cloudflare Pages
+        if: ${{ env.CLOUDFLARE_API_TOKEN != '' }}
+        env:
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: >
+          pnpm dlx wrangler@4 pages deploy out
+          --project-name="$CLOUDFLARE_PROJECT"
+          --branch="$BRANCH"
+          --commit-hash="$GITHUB_SHA"
+          --commit-dirty=true
+
+      # Only when content may have changed, not on the daily rebuild.
+      - name: notify IndexNow
+        if: ${{ github.event_name == 'push' && env.INDEXNOW_KEY != '' && env.CLOUDFLARE_API_TOKEN != '' }}
+        run: pnpm indexnow

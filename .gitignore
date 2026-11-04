@@ -42,3 +42,4 @@ next-env.d.ts
 
 # fumadocs (generated MDX source map)
 .source
+/.wrangler/

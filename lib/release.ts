@@ -3,10 +3,10 @@ const LATEST_RELEASE_API =
 
 /**
  * The tag of the latest published Fleetdock release (e.g. "v0.8.0"), read
- * from GitHub Releases and refreshed at most once an hour — so a new release
- * appears on the site without a redeploy. Null when GitHub cannot be reached
+ * from GitHub Releases when the site is built. The site is static, so the deploy
+ * workflow rebuilds it daily to pick up new releases. Null when GitHub cannot be reached
  * or rate-limits the request: callers then show no version rather than a
- * made-up one. Set GITHUB_TOKEN at build/runtime to lift the unauthenticated
+ * made-up one. Set GITHUB_TOKEN at build time to lift the unauthenticated
  * limit.
  */
 export async function getLatestVersion(): Promise<string | null> {
@@ -18,7 +18,6 @@ export async function getLatestVersion(): Promise<string | null> {
           ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
           : {}),
       },
-      next: { revalidate: 3600 },
     });
     if (res.ok) {
       const { tag_name: tag } = (await res.json()) as { tag_name?: unknown };
@@ -31,7 +30,7 @@ export async function getLatestVersion(): Promise<string | null> {
 }
 
 /**
- * The repository's star count, refreshed at most once an hour, or null when
+ * The repository's star count at build time, or null when
  * GitHub can't be reached — callers then show the repository name instead of
  * a made-up number.
  */
@@ -42,7 +41,6 @@ export async function getStarCount(): Promise<number | null> {
         Accept: "application/vnd.github+json",
         ...(process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {}),
       },
-      next: { revalidate: 3600 },
     });
     if (res.ok) {
       const { stargazers_count: stars } = (await res.json()) as { stargazers_count?: unknown };

@@ -12,7 +12,6 @@ const SPEC_PATH = "./openapi/openapi.yaml";
 
 const baseOpenapi = createOpenAPI({
   input: [SPEC_PATH],
-  proxyUrl: "/api/proxy",
 });
 
 type BundledDocument = Awaited<
@@ -72,12 +71,12 @@ function createVersionedOpenAPI(version: DocVersionId) {
     input: {
       [SPEC_PATH]: () => loadVersionedDocument(version),
     },
-    proxyUrl: "/api/proxy",
   });
 }
 
 /**
- * Default OpenAPI server (v1). Used by the API playground proxy route.
+ * Default OpenAPI server (v1). The playground sends requests straight from
+ * the browser to the reader's own Manager (the site is static; no proxy).
  */
 export const openapi = createVersionedOpenAPI(DEFAULT_VERSION);
 

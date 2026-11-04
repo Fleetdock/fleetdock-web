@@ -46,10 +46,13 @@ export function createMetadata({
   /** A plain-Markdown copy of the page for AI tools, e.g. "/docs/backups.md". */
   markdownPath?: string;
 }): Metadata {
-  const socialTitle = title ? `${title} — ${siteConfig.name}` : siteConfig.title;
+  // "<title> — Fleetdock", unless the title already names the product or is
+  // long enough that the suffix would push it past what search results show.
+  const standalone = title !== undefined && (title.includes(siteConfig.name) || title.length > 50);
+  const socialTitle = title ? (standalone ? title : `${title} — ${siteConfig.name}`) : siteConfig.title;
 
   return {
-    ...(title ? { title } : {}),
+    ...(title ? { title: standalone ? { absolute: title } : title } : {}),
     description,
     alternates: {
       canonical: path,

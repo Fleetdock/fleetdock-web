@@ -55,13 +55,13 @@ export function Navbar() {
           <Logo />
         </Link>
 
-        <ul className="hidden items-center gap-1 md:flex">
+        <ul className="hidden items-center gap-1 lg:flex">
           {mainNav.map((item) => (
             <li key={item.href}>
               <Link
                 href={item.href}
                 className={cn(
-                  "rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   isActive(item.href)
                     ? "text-foreground"
                     : "text-muted-foreground hover:text-foreground",
@@ -99,7 +99,7 @@ export function Navbar() {
             type="button"
             className={cn(
               buttonVariants({ variant: "outline", size: "icon" }),
-              "md:hidden",
+              "lg:hidden",
             )}
             aria-expanded={open}
             aria-controls="mobile-menu"
@@ -114,7 +114,7 @@ export function Navbar() {
       {open && (
         <div
           id="mobile-menu"
-          className="border-t border-border bg-background md:hidden"
+          className="border-t border-border bg-background lg:hidden"
         >
           <ul className="mx-auto flex max-w-6xl flex-col gap-1 px-5 py-4 sm:px-6">
             {mainNav.map((item) => (

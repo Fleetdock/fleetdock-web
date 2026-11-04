@@ -8,6 +8,9 @@ import {
   source,
 } from "@/lib/source";
 
+// Rendered once at build time (static export).
+export const dynamic = "force-static";
+
 type Entry = MetadataRoute.Sitemap[number];
 
 function day(date: string | undefined): Date | undefined {
