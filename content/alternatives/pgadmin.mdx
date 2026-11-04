@@ -1,0 +1,110 @@
+---
+title: "Fleetdock vs pgAdmin"
+description: "Comparing pgAdmin alternatives? See how Fleetdock and pgAdmin differ on engines, scheduled backups, multi-database queries, sign-in options and licensing."
+competitor: "pgAdmin"
+competitorUrl: "https://www.pgadmin.org"
+verdict: "Pick pgAdmin for deep PostgreSQL development and administration, on the desktop or in a browser. Pick Fleetdock to operate many PostgreSQL, MySQL and MariaDB databases with scheduled backups, restores and fleet-wide queries."
+updated: "2026-11-04"
+comparison:
+  - feature: "Engines"
+    fleetdock: "MariaDB, MySQL, PostgreSQL"
+    competitor: "PostgreSQL"
+  - feature: "License"
+    fleetdock: "Apache-2.0"
+    competitor: "PostgreSQL License"
+  - feature: "Runs as"
+    fleetdock: "Self-hosted web app (Docker)"
+    competitor: "Desktop app or web server mode"
+  - feature: "Backups"
+    fleetdock: "Scheduled, to S3, R2 or S3-compatible"
+    competitor: "pg_dump dialog; schedule via pgAgent"
+  - feature: "Run SQL on many databases"
+    fleetdock: "Up to 500 at once"
+    competitor: "Query Tool, per database"
+  - feature: "Schema comparison"
+    fleetdock: "Compare, history, generated DDL"
+    competitor: "Schema Diff, generated DDL"
+  - feature: "Query plans"
+    fleetdock: "Explain and Analyze as a tree"
+    competitor: "Graphical EXPLAIN"
+  - feature: "Undo for row edits"
+    fleetdock: "Yes, per row or per save"
+    competitor: "Not in its documentation"
+  - feature: "Sign-in options"
+    fleetdock: "Email and password, API tokens"
+    competitor: "Internal, LDAP, Kerberos, OAuth2/OIDC"
+faq:
+  - q: "Is Fleetdock a pgAdmin alternative?"
+    a: "For operating databases, yes: Fleetdock browses and edits data, runs SQL, manages users and grants, and adds scheduled backups, restores and fleet-wide queries. For in-depth PostgreSQL object management and development, pgAdmin goes further."
+  - q: "Does Fleetdock support MySQL and MariaDB as well as PostgreSQL?"
+    a: "Yes. Fleetdock supports MariaDB, MySQL and PostgreSQL with the same data browser, SQL console and backups. pgAdmin is built for PostgreSQL only."
+  - q: "Can Fleetdock schedule PostgreSQL backups?"
+    a: "Yes. Fleetdock runs pg_dump on a cron schedule, streams the gzipped dump to S3, Cloudflare R2 or an S3-compatible bucket, records a SHA-256 checksum, and deletes backups that age out of the retention window."
+  - q: "Does Fleetdock support SSO like pgAdmin's LDAP or OAuth2 login?"
+    a: "Not yet. Fleetdock has its own users with roles and API tokens, but no SSO, OIDC or 2FA today. pgAdmin's server mode documents LDAP, Kerberos and OAuth2/OIDC authentication."
+  - q: "Is pgAdmin free?"
+    a: "Yes. pgAdmin is open source under the PostgreSQL License. Fleetdock is also free and open source, under Apache-2.0."
+---
+
+pgAdmin and Fleetdock are both free, open-source tools for working with PostgreSQL from a graphical interface. pgAdmin is a PostgreSQL administration and development tool that runs as a desktop app or as a web application, with deep coverage of PostgreSQL objects. Fleetdock is a self-hosted control plane for PostgreSQL, MySQL and MariaDB that adds scheduled backups to object storage, restores, database moves and queries across up to 500 databases, so it fits teams operating many databases on many servers.
+
+## What is pgAdmin?
+
+[pgAdmin](https://www.pgadmin.org) is an open-source tool for administering, developing and monitoring PostgreSQL, maintained by its community and licensed under the PostgreSQL License. It runs as a desktop application or in **server mode** as a multi-user web application, with packages for Windows, macOS, Linux and containers.
+
+Its strengths are PostgreSQL depth: graphical management of every kind of PostgreSQL object with the generated SQL visible, a Query Tool with autocompletion, history and a graphical EXPLAIN, an ERD Tool, and Schema Diff, which compares two databases or schemas and generates the script to align them. Backups use `pg_dump` in plain, custom, tar or directory format. Recurring jobs are handled by pgAgent, a job scheduler distributed separately from pgAdmin. In server mode, pgAdmin documents internal, LDAP, Kerberos and OAuth2/OIDC sign-in.
+
+## What is Fleetdock?
+
+Fleetdock is an Apache-2.0, self-hosted dashboard and API for your databases. The **Manager** serves the dashboard and API, runs a background worker and keeps its metadata in PostgreSQL. An optional **Agent** on each database server creates database containers, reports CPU, memory and disk every 30 seconds, and runs backups locally. Databases the Manager can reach over the network, including hosted ones such as Amazon RDS or Neon, need no agent.
+
+## Key differences
+
+### One server versus a fleet
+
+pgAdmin organizes work around servers you register in its browser tree. Fleetdock is built around an inventory of many servers and databases: it discovers databases on each server it can log in to, and its [fleet query](/docs/fleet-query) runs one script on up to 500 databases, merging the results into one table. Scripts that write need a typed confirmation and run on one database first by default.
+
+<Screenshot name="fleet-query" />
+
+### Backups as a scheduled service
+
+pgAdmin's Backup dialog runs `pg_dump` when you ask it to. Fleetdock runs [backups](/docs/backups) on a cron schedule with a retention window, streams them gzipped to S3, Cloudflare R2 or an S3-compatible bucket, and records a SHA-256 checksum that [restores](/docs/restores) check before touching the target. A [migration](/docs/migrations) copies or moves a database to another server through backup, restore and verify steps. Failures can notify you by email, Slack or webhook.
+
+### Schema changes over time
+
+Both tools compare two databases and generate DDL. Fleetdock's [schema history](/docs/schema-history) also records a snapshot whenever a database's structure changes, however the change was made, every 15 minutes by default, and can send a notification when it does.
+
+### Editing data
+
+Fleetdock's [data browser](/docs/data-browser) journals every saved insert, edit and delete and offers **Undo** per row or per save. Its [SQL console](/docs/sql-console) can **Preview** a write script inside a transaction that is always rolled back, showing the rows each statement would change.
+
+### Depth on PostgreSQL
+
+pgAdmin exposes far more of PostgreSQL's object model, configuration and tooling than Fleetdock. Fleetdock covers the operations its three engines share: users and grants, tables and indexes, [index health](/docs/performance), top queries from `pg_stat_statements`, and query plans.
+
+## When to choose pgAdmin
+
+- You work only with PostgreSQL and want the most complete PostgreSQL GUI.
+- You want a desktop app on your own machine, with no server to run.
+- You need sign-in through LDAP, Kerberos or OAuth2/OIDC.
+- Your work is mainly development: writing functions, managing extensions and object properties.
+
+## When to choose Fleetdock
+
+- You run PostgreSQL alongside MySQL or MariaDB.
+- You need scheduled backups to your own bucket, with retention, restores and failure alerts, without setting up pgAgent and scripts.
+- You have many similar databases, such as one per customer, and want to query or change them together.
+- You want undo for data edits and roles (`owner`, `admin`, `operator`, `viewer` or custom) for the people using the dashboard.
+
+## Can you use them together?
+
+Yes. One common split is pgAdmin on developers' machines for PostgreSQL development and use Fleetdock on a server for backups, restores, monitoring and fleet-wide work. Fleetdock connects with an ordinary database login, so both can point at the same servers.
+
+<Callout type="info">
+  Fleetdock does not manage replication, high availability or failover. Keep your existing
+  PostgreSQL replication setup for that.
+</Callout>
+
+## Getting started
+
+Fleetdock installs on a Linux server with one command and sets up automatic HTTPS; 2 vCPU and 4 GB of RAM is enough to start. Follow [Getting started](/docs/getting-started), or [install it on your computer](/docs/local) to evaluate it next to pgAdmin.

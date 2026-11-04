@@ -16,6 +16,14 @@ const nextConfig: NextConfig = {
       { source: "/install.sh", destination: INSTALLER_URL, permanent: false },
     ];
   },
+  async rewrites() {
+    // Plain-Markdown copies of content pages for AI assistants and agents,
+    // served by app/md/[section]/[[...slug]]/route.ts.
+    return ["docs", "blog", "guides", "alternatives"].flatMap((section) => [
+      { source: `/${section}.md`, destination: `/md/${section}` },
+      { source: `/${section}/:path*.md`, destination: `/md/${section}/:path*` },
+    ]);
+  },
 };
 
 const withMDX = createMDX();

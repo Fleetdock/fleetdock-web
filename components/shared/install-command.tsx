@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Check, Copy, Terminal } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export const INSTALL_COMMAND = "curl -sSL https://fleetdock.dev/install.sh | sudo sh";
+import { INSTALL_COMMAND } from "@/lib/install";
 
 /** The one-line installer with a copy button. */
 export function InstallCommand({ className }: { className?: string }) {

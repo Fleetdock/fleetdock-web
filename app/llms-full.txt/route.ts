@@ -1,19 +1,39 @@
-import { source } from "@/lib/source";
 import { siteConfig } from "@/lib/site-config";
+import { markdownParams, pageMarkdown, type MarkdownSection } from "@/lib/markdown";
+import {
+  productFacts,
+  productFeatures,
+  productLimits,
+  productSummary,
+} from "@/lib/product-facts";
 
 export const dynamic = "force-static";
 
-/** Every hand-written docs page as plain Markdown, for LLM ingestion. */
+const ORDER: MarkdownSection[] = ["docs", "guides", "alternatives", "blog"];
+
+/** The product summary, then every hand-written page as Markdown. */
 export async function GET() {
-  const sections = await Promise.all(
-    source.getPages().map(async (page) => {
-      if (page.type === "openapi") return null;
-      const text = await page.data.getText("processed");
-      return `# ${page.data.title} (${siteConfig.url}${page.url})\n\n${text}`;
-    }),
+  const intro = [
+    `# ${siteConfig.name} (${siteConfig.url})`,
+    "",
+    productSummary,
+    "",
+    ...productFacts.map((f) => `- ${f.label}: ${f.value}`),
+    "",
+    "What it does:",
+    ...productFeatures.map((f) => `- ${f}`),
+    "",
+    "What it does not do:",
+    ...productLimits.map((f) => `- ${f}`),
+  ].join("\n");
+
+  const pages = await Promise.all(
+    ORDER.flatMap((section) =>
+      markdownParams(section).map((slugs) => pageMarkdown(section, slugs)),
+    ),
   );
 
-  return new Response(sections.filter(Boolean).join("\n\n"), {
+  return new Response([intro, ...pages.filter(Boolean)].join("\n\n---\n\n"), {
     headers: { "Content-Type": "text/plain; charset=utf-8" },
   });
 }

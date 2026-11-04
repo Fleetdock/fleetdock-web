@@ -6,10 +6,10 @@ import {
   DocsDescription,
   DocsTitle,
 } from "fumadocs-ui/page";
-import { source } from "@/lib/source";
+import { gitLastModified, source } from "@/lib/source";
 import { getMDXComponents } from "@/mdx-components";
 import { siteConfig } from "@/lib/site-config";
-import { createMetadata, docsOgImage } from "@/lib/metadata";
+import { createMetadata, docsOgImage, markdownPath } from "@/lib/metadata";
 import { JsonLd } from "@/components/shared/json-ld";
 import { OpenAPIPage } from "@/components/api-page";
 import { getPageSlug, resolveDocsSlug } from "@/lib/versions";
@@ -64,13 +64,22 @@ export async function generateMetadata(props: {
   if (!page) notFound();
 
   const title = page.data.title ?? siteConfig.name;
-  return createMetadata({
+  const metadata = createMetadata({
     title,
     description: page.data.description ?? siteConfig.description,
     path: page.url,
     type: "article",
     image: docsOgImage(page.slugs, title),
+    markdownPath: page.type === "openapi" ? undefined : markdownPath(page.url),
   });
+
+  // Generated per-endpoint API pages are thin and number in the hundreds:
+  // keep them out of search results (links are still followed) so the index
+  // holds the pages people search for. The API overview stays indexed.
+  if (page.type === "openapi") {
+    metadata.robots = { index: false, follow: true };
+  }
+  return metadata;
 }
 
 type DocsPageEntry = NonNullable<ReturnType<typeof source.getPage>>;
@@ -92,10 +101,7 @@ function docsJsonLd(page: DocsPageEntry) {
     }
   }
 
-  const lastModified =
-    "lastModified" in page.data && page.data.lastModified instanceof Date
-      ? page.data.lastModified.toISOString()
-      : undefined;
+  const lastModified = gitLastModified(page)?.toISOString();
 
   return {
     "@context": "https://schema.org",

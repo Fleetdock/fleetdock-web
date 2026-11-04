@@ -1,0 +1,113 @@
+---
+title: "Fleetdock vs ClusterControl"
+description: "Considering a ClusterControl alternative? Compare Fleetdock and Severalnines ClusterControl on HA and failover, engines, backups, data tools and pricing."
+competitor: "ClusterControl"
+competitorUrl: "https://severalnines.com/clustercontrol/"
+verdict: "Pick ClusterControl if you need replicated, highly available clusters with automated failover, or engines beyond MariaDB, MySQL and PostgreSQL. Pick Fleetdock for many standalone databases, hands-on data tools and every feature free under Apache-2.0."
+updated: "2026-11-04"
+comparison:
+  - feature: "Engines"
+    fleetdock: "MariaDB, MySQL, PostgreSQL"
+    competitor: "11+, incl. MongoDB, Redis, SQL Server"
+  - feature: "License and price"
+    fleetdock: "Apache-2.0, all features free"
+    competitor: "Free Community; paid per-node editions"
+  - feature: "High availability and failover"
+    fleetdock: "No"
+    competitor: "Yes, automated failover (paid editions)"
+  - feature: "Replication and load balancers"
+    fleetdock: "No"
+    competitor: "Yes"
+  - feature: "Backups"
+    fleetdock: "Logical dumps to S3-compatible storage"
+    competitor: "Full, incremental, partial (paid editions)"
+  - feature: "Point-in-time recovery"
+    fleetdock: "No"
+    competitor: "Yes, where the engine supports it"
+  - feature: "Access to database servers"
+    fleetdock: "Outbound agent or direct connection"
+    competitor: "Passwordless SSH from controller"
+  - feature: "Data browser with undo"
+    fleetdock: "Yes"
+    competitor: "Not in its feature list"
+  - feature: "Run SQL on many databases"
+    fleetdock: "Up to 500 at once"
+    competitor: "Not in its feature list"
+  - feature: "Roles and access control"
+    fleetdock: "Included"
+    competitor: "RBAC and LDAP in Enterprise"
+  - feature: "SSO / LDAP sign-in"
+    fleetdock: "Not yet"
+    competitor: "LDAP/Active Directory (Enterprise)"
+faq:
+  - q: "Is Fleetdock a ClusterControl alternative?"
+    a: "Partly. Fleetdock overlaps with ClusterControl on provisioning, backups, restores, monitoring and alerts for MariaDB, MySQL and PostgreSQL, but it does not manage replication, high availability or failover. If you need those, ClusterControl is the better fit."
+  - q: "Does Fleetdock do automatic failover like ClusterControl?"
+    a: "No. Fleetdock manages, backs up and monitors databases but does not replicate them or fail over between servers. ClusterControl offers automated failover in its paid editions."
+  - q: "How much does ClusterControl cost compared with Fleetdock?"
+    a: "ClusterControl has a free Community edition for deploying and monitoring, and paid editions billed per node, with self-serve pricing from 250 euros per node per month and custom quotes for Advanced and Enterprise. Fleetdock is free and open source under Apache-2.0; you pay only for the server it runs on."
+  - q: "Does Fleetdock need SSH access to my database servers?"
+    a: "No. The optional Fleetdock agent connects outbound to the Manager, and databases Fleetdock can reach over the network connect with just an address and a login. ClusterControl's documentation requires passwordless SSH from the ClusterControl host to every managed node."
+  - q: "Which databases does ClusterControl support that Fleetdock does not?"
+    a: "ClusterControl lists MongoDB, Redis, Valkey, SQL Server for Linux, ClickHouse, Elasticsearch and TimescaleDB, among others. Fleetdock supports MariaDB, MySQL and PostgreSQL."
+---
+
+ClusterControl and Fleetdock are both self-hosted platforms for operating databases across many servers. ClusterControl, from Severalnines, automates highly available database clusters: deployment, replication, load balancers, automated failover, backups with point-in-time recovery and monitoring, across more than ten database technologies. Fleetdock is an Apache-2.0 control plane for MariaDB, MySQL and PostgreSQL that focuses on many standalone databases: provisioning, scheduled backups, restores, moves and hands-on data tools, with no high availability or failover management.
+
+## What is ClusterControl?
+
+[ClusterControl](https://severalnines.com/clustercontrol/) is Severalnines' database automation platform for on-premises, cloud and hybrid environments. It supports MySQL, MariaDB, PostgreSQL, SQL Server for Linux, ClickHouse, Galera Cluster, TimescaleDB, Elasticsearch, MongoDB, Valkey and Redis.
+
+Its feature list covers deploying high-availability clusters and load balancers, automated failover, scaling, replication management, full, incremental and partial backups, point-in-time recovery where the database supports it, backup verification, dashboards, query monitoring, performance advisors, upgrades and configuration management. It installs on a Linux server, with a Helm chart, Ansible, Puppet and a Terraform provider as other options. Management is agentless over passwordless SSH from the ClusterControl host to every managed node; monitoring uses Prometheus exporters on the nodes.
+
+ClusterControl is commercial software with a free **Community** edition (deploy and monitor, performance advisors, community support). Failover, scaling, load balancers and backup and recovery are in the paid **Advanced** edition; RBAC, LDAP/Active Directory, audit logs and backup verification are in **Enterprise**. Self-serve pricing starts at 250 euros per node per month; Advanced and Enterprise are quoted per node.
+
+## What is Fleetdock?
+
+Fleetdock is a free, Apache-2.0 dashboard and API for MariaDB, MySQL and PostgreSQL. The **Manager** runs the dashboard, API and background worker, with its metadata in PostgreSQL. An optional **Agent** on each server connects outbound to the Manager, heartbeats every 30 seconds and runs operations locally, including launching database containers. Databases Fleetdock can reach over the network, such as Amazon RDS or Neon, connect without an agent. Fleetdock sends no telemetry.
+
+## Key differences
+
+### High availability is ClusterControl's core; Fleetdock does not do it
+
+This is the main difference. ClusterControl builds and runs replicated clusters with load balancers and automated failover. Fleetdock manages single database instances and does not configure replication, high availability or failover. If a primary failing over to a replica is part of your requirements, Fleetdock does not cover it.
+
+### Backups and recovery
+
+ClusterControl's paid editions offer full, incremental and partial backups with point-in-time recovery. Fleetdock's [backups](/docs/backups) are logical dumps (`mariadb-dump` or `pg_dump`), gzipped, checksummed and streamed to S3, Cloudflare R2 or an S3-compatible bucket on a schedule with retention, and included in the free product. Fleetdock has no point-in-time recovery today; it is on the roadmap. [Restores](/docs/restores) verify the checksum before writing, and [migrations](/docs/migrations) copy or move a database through backup, restore and verify steps.
+
+<Screenshot name="backup-schedules" />
+
+### Day-to-day work with data
+
+Fleetdock puts more weight on what developers and support staff do inside databases: a [data browser](/docs/data-browser) with undo for every saved edit, a [SQL console](/docs/sql-console) with a rolled-back preview of write scripts, [fleet query](/docs/fleet-query) across up to 500 databases, [schema history](/docs/schema-history) with drift notifications, and [index health and top queries](/docs/performance). These suit setups with one database per customer or tenant.
+
+### How it reaches your servers
+
+ClusterControl requires key-based SSH from its host to each managed node, with an SSH user that can run super-user commands. Fleetdock's agent opens a single outbound connection to the Manager and polls for approved operations, so the Manager never holds SSH access to a node; see [Agents](/docs/agents) and [Security](/docs/security).
+
+### Licensing
+
+Every Fleetdock feature, including roles and permissions, is in the Apache-2.0 release. ClusterControl gates failover, backups, RBAC and LDAP behind paid, per-node editions, and in exchange offers commercial support up to 24x7.
+
+## When to choose ClusterControl
+
+- You need replication, load balancers and automated failover.
+- You need point-in-time recovery or incremental backups.
+- You run MongoDB, Redis, Valkey, SQL Server, ClickHouse or Elasticsearch alongside MySQL and PostgreSQL.
+- You want vendor support with a contract, or LDAP/Active Directory sign-in.
+
+## When to choose Fleetdock
+
+- You run many standalone MariaDB, MySQL or PostgreSQL databases, such as one per tenant.
+- You want scheduled backups, restores and moves without per-node licensing.
+- You want a data browser, SQL console and fleet-wide queries in the same tool.
+- You prefer an outbound agent over granting SSH access to every database server.
+
+## Can you use them together?
+
+It is possible, for example ClusterControl for a replicated primary cluster and Fleetdock for many smaller tenant databases. Avoid having both tools schedule backups or change configuration on the same instances, so each database has one owner for operations.
+
+## Getting started
+
+Install the Fleetdock Manager on a Linux server with 2 vCPU and 4 GB of RAM using `curl -sSL https://fleetdock.dev/install.sh | sudo sh`, which sets up automatic HTTPS. Then follow [Getting started](/docs/getting-started) to connect a server and schedule your first backup.

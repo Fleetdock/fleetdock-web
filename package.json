@@ -10,7 +10,8 @@
     "typecheck": "fumadocs-mdx && tsc --noEmit",
     "sync:openapi": "cp ../fleetdock/backend/internal/openapi/openapi.yaml openapi/openapi.yaml",
     "sync:install": "cp ../fleetdock/scripts/install.sh public/install.sh",
-    "postinstall": "fumadocs-mdx"
+    "postinstall": "fumadocs-mdx",
+    "indexnow": "node scripts/indexnow.mjs"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
@@ -25,7 +26,8 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "shiki": "^4.3.1",
-    "tailwind-merge": "^3.6.0"
+    "tailwind-merge": "^3.6.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

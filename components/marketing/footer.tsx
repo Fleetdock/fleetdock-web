@@ -10,7 +10,7 @@ export async function Footer() {
   return (
     <footer className="border-t border-border bg-background-subtle">
       <Container className="py-14">
-        <div className="grid grid-cols-2 gap-10 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-10 sm:grid-cols-3 lg:grid-cols-6">
           <div className="col-span-2 flex flex-col gap-4 lg:col-span-2">
             <Link href="/" aria-label={`${siteConfig.name} home`} className="w-fit">
               <Logo />
