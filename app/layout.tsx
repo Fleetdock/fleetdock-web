@@ -36,6 +36,10 @@ export const metadata: Metadata = {
     "database migration",
     "open source database operations",
     "database provisioning",
+    "phpMyAdmin alternative",
+    "pgAdmin alternative",
+    "database web GUI",
+    "database per tenant",
   ],
   authors: [{ name: siteConfig.maintainer.name, url: siteConfig.maintainer.url }],
   creator: siteConfig.maintainer.name,
@@ -56,6 +60,10 @@ export const metadata: Metadata = {
     description: siteConfig.metaDescription,
     images: [defaultOgImage],
   },
+  alternates: {
+    types: { "application/rss+xml": [{ url: "/blog/rss.xml", title: `${siteConfig.name} blog` }] },
+  },
+  verification: siteVerification(),
   robots: {
     index: true,
     follow: true,
@@ -67,6 +75,23 @@ export const metadata: Metadata = {
     },
   },
 };
+
+/**
+ * Ownership proof for search consoles, read from the environment at build
+ * time so tokens aren't committed: GOOGLE_SITE_VERIFICATION (Google Search
+ * Console), BING_SITE_VERIFICATION (Bing Webmaster Tools, which also feeds
+ * ChatGPT search and Copilot) and YANDEX_SITE_VERIFICATION.
+ */
+function siteVerification(): Metadata["verification"] {
+  const google = process.env.GOOGLE_SITE_VERIFICATION;
+  const bing = process.env.BING_SITE_VERIFICATION;
+  const yandex = process.env.YANDEX_SITE_VERIFICATION;
+  return {
+    ...(google ? { google } : {}),
+    ...(yandex ? { yandex } : {}),
+    ...(bing ? { other: { "msvalidate.01": bing } } : {}),
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: [

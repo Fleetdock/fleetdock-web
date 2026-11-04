@@ -16,7 +16,8 @@ export function baseOptions(): BaseLayoutProps {
       { text: "Features", url: "/features" },
       { text: "Architecture", url: "/architecture" },
       { text: "Use cases", url: "/use-cases" },
-      { text: "Security", url: "/security" },
+      { text: "Guides", url: "/guides" },
+      { text: "Blog", url: "/blog" },
     ],
     githubUrl: siteConfig.links.github,
   };

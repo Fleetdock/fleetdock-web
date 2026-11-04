@@ -36,7 +36,7 @@ export function Navbar() {
   }, [open]);
 
   const isActive = (href: string) =>
-    href === "/docs" ? pathname.startsWith("/docs") : pathname === href;
+    pathname === href || pathname.startsWith(`${href}/`);
 
   return (
     <header

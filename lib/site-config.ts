@@ -66,9 +66,9 @@ export type SiteConfig = typeof siteConfig;
 /** Primary top-navigation links (marketing pages + docs). */
 export const mainNav: { title: string; href: string; external?: boolean }[] = [
   { title: "Features", href: "/features" },
-  { title: "Architecture", href: "/architecture" },
   { title: "Use cases", href: "/use-cases" },
-  { title: "Security", href: "/security" },
+  { title: "Guides", href: "/guides" },
+  { title: "Blog", href: "/blog" },
   { title: "Documentation", href: "/docs" },
 ];
 
@@ -82,19 +82,32 @@ export const footerNav: {
     links: [
       { title: "Overview", href: "/" },
       { title: "Features", href: "/features" },
-      { title: "Architecture", href: "/architecture" },
+      { title: "Pricing", href: "/pricing" },
       { title: "Use cases", href: "/use-cases" },
+      { title: "Architecture", href: "/architecture" },
       { title: "Security", href: "/security" },
+      { title: "About", href: "/about" },
     ],
   },
   {
-    title: "Documentation",
+    title: "Resources",
     links: [
-      { title: "Introduction", href: "/docs" },
+      { title: "Documentation", href: "/docs" },
       { title: "Getting started", href: "/docs/getting-started" },
-      { title: "Core concepts", href: "/docs/concepts" },
-      { title: "Backups", href: "/docs/backups" },
-      { title: "Security", href: "/docs/security" },
+      { title: "Guides", href: "/guides" },
+      { title: "Blog", href: "/blog" },
+      { title: "API reference", href: "/docs/api" },
+    ],
+  },
+  {
+    title: "Compare",
+    links: [
+      { title: "All alternatives", href: "/alternatives" },
+      { title: "vs phpMyAdmin", href: "/alternatives/phpmyadmin" },
+      { title: "vs pgAdmin", href: "/alternatives/pgadmin" },
+      { title: "vs Adminer", href: "/alternatives/adminer" },
+      { title: "vs ClusterControl", href: "/alternatives/clustercontrol" },
+      { title: "vs Percona PMM", href: "/alternatives/percona-pmm" },
     ],
   },
   {
@@ -102,6 +115,7 @@ export const footerNav: {
     links: [
       { title: "GitHub", href: siteConfig.links.github, external: true },
       { title: "Releases", href: siteConfig.links.releases, external: true },
+      { title: "Changelog", href: siteConfig.links.changelog, external: true },
       { title: "Roadmap", href: siteConfig.links.roadmap, external: true },
       {
         title: "Contributing",

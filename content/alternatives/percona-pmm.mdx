@@ -1,0 +1,114 @@
+---
+title: "Fleetdock vs Percona Monitoring and Management"
+description: "Comparing Percona PMM alternatives? See how Fleetdock and PMM differ: monitoring depth, query analytics, backups, data tools, engines and licensing."
+competitor: "Percona Monitoring and Management (PMM)"
+competitorUrl: "https://www.percona.com/software/database-tools/percona-monitoring-and-management"
+verdict: "Pick PMM for deep metrics, query analytics and advisors across MySQL, PostgreSQL and MongoDB. Pick Fleetdock to operate MariaDB, MySQL and PostgreSQL databases day to day: backups, restores, moves, users and data editing. The two can run side by side."
+updated: "2026-11-04"
+comparison:
+  - feature: "Main purpose"
+    fleetdock: "Operating and administering databases"
+    competitor: "Monitoring, observability and query analytics"
+  - feature: "Engines"
+    fleetdock: "MariaDB, MySQL, PostgreSQL"
+    competitor: "MySQL, MariaDB, PostgreSQL, MongoDB, Valkey/Redis"
+  - feature: "License"
+    fleetdock: "Apache-2.0"
+    competitor: "Server AGPLv3, client Apache 2.0"
+  - feature: "Price"
+    fleetdock: "Free"
+    competitor: "Free; Percona sells support"
+  - feature: "Metrics and dashboards"
+    fleetdock: "CPU, memory, disk, connections per server"
+    competitor: "Detailed per-engine Grafana dashboards"
+  - feature: "Query analysis"
+    fleetdock: "Top queries, Explain, index health"
+    competitor: "Query Analytics, explain plans"
+  - feature: "Automated checks"
+    fleetdock: "Unused and redundant indexes"
+    competitor: "Advisors: security, configuration, performance"
+  - feature: "Backups"
+    fleetdock: "MariaDB, MySQL, PostgreSQL to S3-compatible"
+    competitor: "MongoDB with PITR; MySQL in preview"
+  - feature: "Data browser and editing"
+    fleetdock: "Yes, with undo"
+    competitor: "Not in its feature list"
+  - feature: "Provision and move databases"
+    fleetdock: "Yes"
+    competitor: "Not in its feature list"
+  - feature: "Alerting"
+    fleetdock: "Email, Slack, webhook"
+    competitor: "Grafana alerting, 15+ channels"
+faq:
+  - q: "Is Fleetdock an alternative to Percona PMM?"
+    a: "Only partly. They solve different problems: PMM is a monitoring and query analytics platform, while Fleetdock is a control plane for backups, restores, moves, users and data. Fleetdock's monitoring is basic compared with PMM's."
+  - q: "Can I use Fleetdock and PMM together?"
+    a: "Yes. Both connect to the same database servers with their own logins and do not depend on each other. A common split is PMM for metrics and query analytics, and Fleetdock for backups, restores and administration."
+  - q: "Does Fleetdock have query analytics like PMM?"
+    a: "It has a lighter version: a Top queries view per database server from pg_stat_statements or performance_schema, Explain and Analyze as a plan tree, and index health. It does not keep long-term metric history like PMM."
+  - q: "Is PMM free?"
+    a: "Yes. Percona's README says PMM has no paid edition and that every feature is open source; PMM Server is AGPLv3 and PMM Client is Apache 2.0. Fleetdock is also free, under Apache-2.0."
+  - q: "Does Fleetdock monitor MongoDB?"
+    a: "No. Fleetdock supports MariaDB, MySQL and PostgreSQL. PMM also covers MongoDB and Valkey/Redis."
+---
+
+Percona Monitoring and Management (PMM) and Fleetdock are both free, open-source, self-hosted tools for database teams, but they do different jobs. PMM is an observability platform: detailed metrics dashboards, query analytics and advisors for MySQL, PostgreSQL, MongoDB and Valkey/Redis. Fleetdock is a control plane for MariaDB, MySQL and PostgreSQL that runs the operations: provisioning, scheduled backups, restores, moves, users and grants, and data editing, with basic monitoring and alerts.
+
+## What is PMM?
+
+[Percona Monitoring and Management](https://www.percona.com/software/database-tools/percona-monitoring-and-management) is Percona's open-source tool for database observability, monitoring and management. It covers MySQL (including Percona Server and MariaDB), PostgreSQL, MongoDB and Valkey/Redis, plus ProxySQL, HAProxy and cloud services such as Amazon RDS and Aurora.
+
+PMM has two parts. **PMM Server**, built on Grafana, VictoriaMetrics, ClickHouse and PostgreSQL, stores metrics and query data. **PMM Client** (`pmm-agent` plus exporters) runs next to each database and sends data to the server. Its main features are database-specific dashboards, **Query Analytics** that ranks queries by load with examples and explain plans, **Advisors** that check security, configuration and performance, alerting through Grafana, and backup and restore for MongoDB with point-in-time recovery (MySQL backups are listed as a technical preview in the project README).
+
+PMM Server is licensed AGPLv3 and PMM Client Apache 2.0. Percona states there is no paid edition: every feature is open source, and it sells support.
+
+## What is Fleetdock?
+
+Fleetdock is an Apache-2.0 dashboard and API for MariaDB, MySQL and PostgreSQL. The **Manager** serves the dashboard and API, runs a background worker and keeps its metadata in PostgreSQL. An optional **Agent** on each server connects outbound, heartbeats every 30 seconds with CPU, memory, disk and connection figures, and runs operations locally, including launching database containers. Databases the Manager can reach over the network connect without an agent. Fleetdock sends no telemetry.
+
+## Key differences
+
+### Monitoring depth
+
+This is where PMM leads. It collects detailed engine metrics through exporters and keeps them in a time-series database for Grafana dashboards. Fleetdock records server CPU, memory, disk and connections from agent heartbeats (seven days by default), checks every database server every minute, and alerts by email, Slack or webhook when a server goes offline or a backup fails. Its [performance](/docs/performance) tools are a **Top queries** list per database server, Explain and Analyze plan trees, and index health that flags unused and redundant indexes.
+
+<Screenshot name="instance-detail" />
+
+### Operations
+
+Fleetdock does the work PMM leaves to other tools. It provisions MariaDB, MySQL and PostgreSQL instances as containers, runs [backups](/docs/backups) for all three engines on a schedule to S3, Cloudflare R2 or S3-compatible storage with retention, [restores](/docs/restores) them after verifying a checksum, and [moves or copies](/docs/migrations) databases between servers. It manages database users and grants, and stores credentials encrypted at rest.
+
+### Working with data
+
+Fleetdock includes a [data browser](/docs/data-browser) with undo for every saved edit, a [SQL console](/docs/sql-console) with a rolled-back preview of write scripts, [fleet query](/docs/fleet-query) across up to 500 databases, and [schema history](/docs/schema-history) that records structural changes. PMM is built for observing databases rather than editing their contents.
+
+### Engines
+
+PMM covers MongoDB and Valkey/Redis; Fleetdock does not. Fleetdock backs up PostgreSQL as well as MariaDB and MySQL; PMM's backup features center on MongoDB and MySQL.
+
+## When to choose PMM
+
+- You need detailed, long-term performance metrics and dashboards.
+- You want query analytics across a fleet, with load ranking and examples.
+- You want automated advisor checks for security and configuration.
+- You run MongoDB or Valkey/Redis.
+
+## When to choose Fleetdock
+
+- You need scheduled backups, restores and database moves for MariaDB, MySQL and PostgreSQL.
+- You want a web data browser and SQL console with undo and write previews.
+- You manage many databases, such as one per tenant, and want to query or change them together.
+- Basic server metrics and alerts are enough for monitoring, or you already have a monitoring stack.
+
+## Can you use them together?
+
+Yes, and they complement each other. Run PMM for metrics, query analytics and advisors, and Fleetdock for backups, restores, user management and data work. Each connects with its own database login, so neither has to know about the other.
+
+<Callout type="info">
+  Fleetdock does not manage replication, high availability or automatic failover. Keep your
+  existing replication setup for that.
+</Callout>
+
+## Getting started
+
+Fleetdock installs on a Linux server with 2 vCPU and 4 GB of RAM using `curl -sSL https://fleetdock.dev/install.sh | sudo sh`, which sets up automatic HTTPS. Follow [Getting started](/docs/getting-started) to connect your first database server; PMM can keep monitoring the same servers.

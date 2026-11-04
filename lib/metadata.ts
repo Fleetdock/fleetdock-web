@@ -34,6 +34,7 @@ export function createMetadata({
   path,
   type = "website",
   image = defaultOgImage,
+  markdownPath,
 }: {
   /** Page title; omitted for the homepage so the root default applies. */
   title?: string;
@@ -42,13 +43,18 @@ export function createMetadata({
   path: string;
   type?: "website" | "article";
   image?: OgImage;
+  /** A plain-Markdown copy of the page for AI tools, e.g. "/docs/backups.md". */
+  markdownPath?: string;
 }): Metadata {
   const socialTitle = title ? `${title} — ${siteConfig.name}` : siteConfig.title;
 
   return {
     ...(title ? { title } : {}),
     description,
-    alternates: { canonical: path },
+    alternates: {
+      canonical: path,
+      ...(markdownPath ? { types: { "text/markdown": markdownPath } } : {}),
+    },
     openGraph: {
       type,
       locale: "en_US",
@@ -64,5 +70,22 @@ export function createMetadata({
       description,
       images: [image],
     },
+  };
+}
+
+/** The Markdown twin of a content page: "/docs" → "/docs.md", "/blog/x" → "/blog/x.md". */
+export function markdownPath(url: string): string {
+  return `${url}.md`;
+}
+
+/** Content sections with their own social images at /og/<section>/<slug>/image.png. */
+export type ContentSection = "blog" | "guides" | "alternatives";
+
+/** Social image for a blog post, guide or comparison. */
+export function contentOgImage(section: ContentSection, slugs: string[], title: string): OgImage {
+  return {
+    ...defaultOgImage,
+    url: ["/og", section, ...slugs, "image.png"].join("/"),
+    alt: `${title} — ${siteConfig.name}`,
   };
 }

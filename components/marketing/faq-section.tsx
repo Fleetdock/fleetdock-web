@@ -1,6 +1,7 @@
-import { ChevronDown } from "lucide-react";
 import { Container, Section, SectionHeading } from "@/components/shared/section";
 import { JsonLd } from "@/components/shared/json-ld";
+import { FaqList } from "@/components/shared/faq-list";
+import { faqPage } from "@/lib/structured-data";
 
 export const faqs: { q: string; a: string }[] = [
   {
@@ -36,47 +37,14 @@ export const faqs: { q: string; a: string }[] = [
 export function FaqSection() {
   return (
     <Section id="faq" className="border-b border-border">
-      <JsonLd
-        data={{
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          mainEntity: faqs.map((f) => ({
-            "@type": "Question",
-            name: f.q,
-            acceptedAnswer: { "@type": "Answer", text: f.a.replaceAll("`", "") },
-          })),
-        }}
-      />
+      <JsonLd data={{ "@context": "https://schema.org", ...faqPage(faqs) }} />
       <Container className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
         <SectionHeading
           eyebrow="FAQ"
           title="Questions people ask before installing."
           description="Can't find your answer? Open an issue on GitHub; it's the fastest way to reach the maintainers."
         />
-        <div className="divide-y divide-border rounded-xl border border-border bg-card">
-          {faqs.map((f) => (
-            <details key={f.q} className="group px-5 [&_summary::-webkit-details-marker]:hidden">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-left font-medium text-foreground">
-                {f.q}
-                <ChevronDown
-                  className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
-                  aria-hidden
-                />
-              </summary>
-              <p className="pb-5 text-sm leading-relaxed text-muted-foreground">
-                {f.a.split("`").map((part, i) =>
-                  i % 2 === 1 ? (
-                    <code key={i} className="rounded bg-muted px-1 py-0.5 font-mono text-[0.85em] text-foreground">
-                      {part}
-                    </code>
-                  ) : (
-                    part
-                  ),
-                )}
-              </p>
-            </details>
-          ))}
-        </div>
+        <FaqList items={faqs} />
       </Container>
     </Section>
   );

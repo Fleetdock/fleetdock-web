@@ -1,0 +1,111 @@
+---
+title: "Fleetdock vs Adminer"
+description: "Looking for an Adminer alternative? Compare Fleetdock and Adminer on setup, supported engines, scheduled backups, undo for edits and multi-server management."
+competitor: "Adminer"
+competitorUrl: "https://www.adminer.org"
+verdict: "Pick Adminer for quick, ad-hoc access to many database engines from a single PHP file. Pick Fleetdock to run MariaDB, MySQL and PostgreSQL databases across servers with scheduled backups, restores, roles and fleet-wide queries."
+updated: "2026-11-04"
+comparison:
+  - feature: "Engines"
+    fleetdock: "MariaDB, MySQL, PostgreSQL"
+    competitor: "MySQL, MariaDB, PostgreSQL, SQLite, MS SQL, Oracle"
+  - feature: "More engines via plugins"
+    fleetdock: "No"
+    competitor: "Yes, e.g. MongoDB, Redis, ClickHouse"
+  - feature: "License"
+    fleetdock: "Apache-2.0"
+    competitor: "Apache or GPL 2"
+  - feature: "Installation"
+    fleetdock: "One-line installer, Docker"
+    competitor: "One PHP file on a web server"
+  - feature: "Scheduled backups"
+    fleetdock: "Yes, to S3, R2 or S3-compatible"
+    competitor: "Manual SQL or CSV export"
+  - feature: "Restore and move databases"
+    fleetdock: "Yes, checksum-verified"
+    competitor: "Run SQL from a file"
+  - feature: "Undo for row edits"
+    fleetdock: "Yes, per row or per save"
+    competitor: "Not in its feature list"
+  - feature: "Run SQL on many databases"
+    fleetdock: "Up to 500 at once"
+    competitor: "Not in its feature list"
+  - feature: "Dashboard users and roles"
+    fleetdock: "Owner, admin, operator, viewer, custom"
+    competitor: "Signs in with database credentials"
+  - feature: "Monitoring and alerts"
+    fleetdock: "Server metrics; email, Slack, webhook"
+    competitor: "Process list with kill"
+faq:
+  - q: "Is Fleetdock an Adminer alternative?"
+    a: "For MariaDB, MySQL and PostgreSQL, yes. Fleetdock covers browsing and editing data, running SQL and managing users, and adds scheduled backups, restores, alerts and queries across many databases. For SQLite, MS SQL, Oracle or plugin engines, keep Adminer."
+  - q: "Is Fleetdock as lightweight as Adminer?"
+    a: "No. Adminer is a single PHP file. Fleetdock is a service with its own PostgreSQL metadata database, installed with Docker, and 2 vCPU with 4 GB of RAM is enough to start."
+  - q: "Can Fleetdock back up databases like an Adminer export?"
+    a: "Yes, and on a schedule. Fleetdock runs mariadb-dump or pg_dump, gzips the output and streams it to S3, Cloudflare R2 or an S3-compatible bucket with a retention window. It can also download a one-off dump straight to your browser."
+  - q: "Is Adminer free?"
+    a: "Yes. Adminer is free for commercial and non-commercial use under the Apache License or GPL 2. Fleetdock is also free and open source, under Apache-2.0."
+---
+
+Adminer and Fleetdock are both free, open-source web tools for working with databases. Adminer is a database management tool delivered as a single PHP file that connects to many engines with your database login. Fleetdock is a self-hosted control plane for MariaDB, MySQL and PostgreSQL that adds scheduled backups, restores, database moves, alerts and queries across up to 500 databases, so it fits teams that operate many databases rather than open one now and then.
+
+## What is Adminer?
+
+[Adminer](https://www.adminer.org) is "database management in a single PHP file". You drop the file on a server that runs PHP (5.4 or newer, with sessions enabled), open it in a browser and sign in with a database username and password. It is free for commercial and non-commercial use under the Apache License or GPL 2.
+
+Adminer supports MySQL, MariaDB, PostgreSQL, SQLite, MS SQL and Oracle directly, and plugins add others such as MongoDB, Redis, Elasticsearch, ClickHouse and DuckDB. It lets you add and drop tables and columns, run any SQL command from a text field or a file, export structure and data to SQL or CSV, view and change users and rights, and show and kill processes.
+
+## What is Fleetdock?
+
+Fleetdock is an Apache-2.0, self-hosted dashboard and API for your databases. The **Manager** serves the dashboard and API, runs a background worker and stores its metadata, including database credentials encrypted at rest, in its own PostgreSQL. An optional **Agent** on a database server lets Fleetdock create database containers there, report CPU, memory and disk every 30 seconds, and back up databases that are not reachable from outside. Fleetdock sends no telemetry.
+
+## Key differences
+
+### Footprint
+
+Adminer is as small as a web database tool gets: one file, no database of its own, nothing running in the background. Fleetdock is a long-running service. That is what lets it run scheduled jobs, keep history and send alerts, but it needs a Linux server with Docker (the installer adds it) rather than a PHP host.
+
+### Engines
+
+Adminer covers more engines, including SQLite, MS SQL and Oracle, plus plugins. Fleetdock supports MariaDB, MySQL and PostgreSQL, and goes deeper on those three.
+
+### Backups and restores
+
+Adminer exports SQL or CSV when you click export. Fleetdock runs [backups](/docs/backups) on a cron schedule with a retention window, streams them to S3, Cloudflare R2 or an S3-compatible bucket with a SHA-256 checksum, and notifies you by email, Slack or webhook when one fails. [Restores](/docs/restores) verify the checksum first, and a [migration](/docs/migrations) copies or moves a database to another server through backup, restore and verify steps.
+
+<Screenshot name="backups" />
+
+### Working with data safely
+
+Fleetdock's [data browser](/docs/data-browser) keeps edits pending until you save, journals every saved change and offers **Undo** per row or per save. The [SQL console](/docs/sql-console) can **Preview** a write script in a transaction that is always rolled back, and [fleet query](/docs/fleet-query) runs one script on up to 500 databases with a run-on-one-first safety step.
+
+### Who can do what
+
+Adminer gives whoever holds a database login whatever that login allows. Fleetdock has its own users with roles (`owner`, `admin`, `operator`, `viewer` and custom roles), so you can let someone browse data without handing them the database password. Fleetdock does not offer SSO, OIDC or 2FA yet; see [Security](/docs/security).
+
+## When to choose Adminer
+
+- You need quick access to a database and want nothing to install or maintain.
+- You work with SQLite, MS SQL, Oracle or an engine Adminer supports through a plugin.
+- You only have PHP hosting available.
+- One person uses it, with their own database credentials.
+
+## When to choose Fleetdock
+
+- You run MariaDB, MySQL or PostgreSQL on several servers and want one inventory.
+- You need backups that run on their own, with retention, restores and alerts.
+- Several people need access with different permissions, without sharing database passwords.
+- You want undo for data edits, write previews and fleet-wide queries.
+
+## Can you use them together?
+
+Yes. Fleetdock connects with an ordinary database login, so Adminer keeps working against the same servers. A common split is Adminer for a one-off look at a SQLite file or a less common engine, and Fleetdock for the MariaDB, MySQL and PostgreSQL databases you run in production.
+
+<Callout type="info">
+  Fleetdock does not provide replication, high availability or automatic failover. It manages,
+  backs up and monitors databases; keep your existing replication setup for failover.
+</Callout>
+
+## Getting started
+
+Install Fleetdock on a Linux server with `curl -sSL https://fleetdock.dev/install.sh | sudo sh`, which sets up automatic HTTPS, then follow [Getting started](/docs/getting-started) to connect your first database server. To try it on a laptop instead, see [Install on your computer](/docs/local).

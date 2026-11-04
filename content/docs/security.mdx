@@ -268,7 +268,6 @@ advisory locks so only one replica runs them at a time. `/healthz` and `/readyz`
 
 - No SSO/OIDC or 2FA yet.
 - The agent runs as root (required to drive Docker), inside a sandboxed systemd unit.
-- Audit events are recorded but not exposed through the API or dashboard yet.
 - Gateway TLS is passthrough only — no termination at the proxy in the current MVP.
 - Gateway CIDR allowlists match the address HAProxy observes, which is not the real client
   address behind an L4 load balancer unless `FLEETDOCK_GATEWAY_SOURCE_IP_MODE=proxy-protocol`
