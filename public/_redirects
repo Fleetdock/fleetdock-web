@@ -1,0 +1,7 @@
+# Cloudflare Pages redirects (https://developers.cloudflare.com/pages/configuration/redirects/)
+#
+# The Fleetdock installer lives in the main repository. Redirect to it rather
+# than keeping a copy here: copies drift, and the installer must always match
+# the docker-compose.yml it downloads from the same branch. Temporary (307), so
+# clients never cache where the script lives; `curl -sSL` and `wget` follow it.
+/install.sh  https://raw.githubusercontent.com/Fleetdock/fleetdock/main/scripts/install.sh  307

@@ -6,7 +6,7 @@
  *
  * Run after a deploy:  INDEXNOW_KEY=… pnpm indexnow
  * The same INDEXNOW_KEY must be set when the site is built, so that
- * https://fleetdock.dev/indexnow.txt serves it.
+ * scripts/postexport.mjs writes https://fleetdock.dev/indexnow.txt.
  */
 const site = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://fleetdock.dev").replace(/\/$/, "");
 const key = process.env.INDEXNOW_KEY;

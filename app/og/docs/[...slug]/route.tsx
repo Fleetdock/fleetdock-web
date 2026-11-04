@@ -2,6 +2,9 @@ import { notFound } from "next/navigation";
 import { source } from "@/lib/source";
 import { renderOgImage } from "@/lib/og";
 
+// Rendered once at build time (static export).
+export const dynamic = "force-static";
+
 /** Per-page social image for the documentation, e.g. /og/docs/backups/image.png. */
 export async function GET(
   _req: Request,

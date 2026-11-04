@@ -35,8 +35,10 @@ Agent routes under `/agent/v1` use **agent bearer tokens** prefixed with `fleeta
 
 ## Interactive playground
 
-Each endpoint page includes a playground where you can send requests. When testing against
-a Manager that does not allow browser CORS, requests are proxied through this site.
+Each endpoint page includes a playground where you can send requests. They go straight from
+your browser to your Manager, so it must allow this site's origin: set
+`FLEETDOCK_CORS_ORIGIN=https://fleetdock.dev` (see [Manager installation](/docs/manager)), or copy
+the generated `curl` command and run it instead.
 
 Set the server URL in the playground to your Manager before sending authenticated requests.
 

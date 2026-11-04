@@ -112,7 +112,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
       <body className="min-h-dvh bg-background text-foreground antialiased">
-        <RootProvider>{children}</RootProvider>
+        <RootProvider search={{ options: { type: "static" } }}>{children}</RootProvider>
       </body>
     </html>
   );
