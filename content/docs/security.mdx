@@ -61,7 +61,7 @@ Docker-level control of its node.
 
 Instance admin credentials, SSH keys, backup storage keys, and notification secrets (webhook
 and Slack URLs, SMTP passwords) are **envelope-encrypted** at rest with
-`FLEETDOCK_ENCRYPTION_KEY`. Notification channels saved by versions before 1.0 are encrypted
+`FLEETDOCK_ENCRYPTION_KEY`. Notification channels saved by versions before 0.10 are encrypted
 on the first start. Use **least-privilege** database users for stored admin
 credentials so a leak cannot exceed its grants.
 
@@ -292,7 +292,7 @@ Release images and the `SHA256SUMS` checksum file are signed with
 Fleetdock repository's release workflow from a version tag. Verify an image before you run it:
 
 ```bash
-cosign verify ghcr.io/fleetdock/fleetdock:v1.0.0 \
+cosign verify ghcr.io/fleetdock/fleetdock:v0.10.0 \
   --certificate-identity-regexp '^https://github.com/Fleetdock/fleetdock/\.github/workflows/release\.yml@refs/tags/v' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```

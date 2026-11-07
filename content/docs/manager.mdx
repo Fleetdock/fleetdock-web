@@ -230,7 +230,7 @@ With managed PostgreSQL, use your provider's automated backups and test a restor
 
 ```bash
 fleetdock update              # latest
-fleetdock update --tag v1.0.0 # a specific release
+fleetdock update --tag v0.10.0 # a specific release
 ```
 
 `fleetdock update` backs up the metadata database first and stops if that fails.
@@ -238,7 +238,7 @@ fleetdock update --tag v1.0.0 # a specific release
 Or, from a source checkout:
 
 ```bash
-git fetch origin && git checkout v1.0.0
+git fetch origin && git checkout v0.10.0
 docker compose -f docker-compose.yml -f docker-compose.build.yml up --build -d
 ```
 
@@ -258,11 +258,11 @@ pending, so it never serves against a schema it does not match.
 <Callout type="warn">
   Migrations only move forward. To roll back, stop the new version, restore the metadata
   backup taken before the upgrade, and start the previous image tag. Rolling back only the
-  binary does not work: from 1.0, an older version refuses to start on the newer schema.
+  binary does not work: from 0.10, an older version refuses to start on the newer schema.
 </Callout>
 
-Within 1.x, any release upgrades in place from any earlier 1.x release and from the last 0.9
-release. See the [compatibility promise](https://github.com/Fleetdock/fleetdock/blob/main/RELEASING.md#compatibility-promise-from-10).
+Every release upgrades in place from the previous minor release and its patches. See the
+[compatibility rules](https://github.com/Fleetdock/fleetdock/blob/main/RELEASING.md#compatibility).
 
 ### Which version is running
 
@@ -281,7 +281,7 @@ Images and the `SHA256SUMS` file of each release are signed with
 [cosign](https://docs.sigstore.dev/) keyless signing, from the release workflow:
 
 ```bash
-cosign verify ghcr.io/fleetdock/fleetdock:v1.0.0 \
+cosign verify ghcr.io/fleetdock/fleetdock:v0.10.0 \
   --certificate-identity-regexp '^https://github.com/Fleetdock/fleetdock/\.github/workflows/release\.yml@refs/tags/v' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```

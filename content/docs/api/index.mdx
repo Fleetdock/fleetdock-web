@@ -1,6 +1,6 @@
 ---
 title: API reference
-description: Fleetdock Manager HTTP API — authentication, errors, the 1.x stability promise, endpoints, schemas, and an interactive playground.
+description: Fleetdock Manager HTTP API — authentication, errors, compatibility rules, endpoints, schemas, and an interactive playground.
 ---
 
 The Fleetdock Manager exposes a REST API for provisioning databases, running backups,
@@ -60,29 +60,31 @@ Every error response has the same shape, for example:
 `rate_limited` or `internal`; `field` names the request field at fault for `invalid`. Match on
 `code` and the HTTP status, never on `message`, which is meant for people and may be reworded.
 
-## Stability promise
+## Compatibility
 
-From 1.0, the `/v1` API is stable for the whole 1.x line:
+Fleetdock is still before 1.0, so a minor release (0.11, 0.12, …) may change the API. From
+0.10 it follows these rules anyway; 1.0 turns them into a promise for the whole 1.x line:
 
 - No endpoint, field, query parameter or error code documented in the OpenAPI spec is removed
-  or renamed within 1.x, and no field changes type or meaning.
+  or renamed in a patch release, and no field changes type or meaning. A minor release that
+  removes or changes one lists it in the changelog, after deprecating it where possible.
 - New endpoints, optional request fields, response fields and enum values may be added in any
   release, so **ignore fields you do not know**.
 - Errors keep the `{error: {code, message, field}}` envelope.
 - Anything that will go is first marked `deprecated: true` in the spec, answers with a
   `Deprecation` header (and `Sunset` once a date is set), and is announced in the changelog at
-  least one minor release before the major release that removes it.
+  least one minor release before the release that removes it.
 - A control plane accepts agents from its own minor version and the one before
   (`min_agent_version` in `GET /v1/version`), so agents can be
   [updated](/docs/agents#update) after the Manager.
 
 Undocumented routes (the dashboard's own) are not covered. The full policy is in
-[RELEASING.md](https://github.com/Fleetdock/fleetdock/blob/main/RELEASING.md#compatibility-promise-from-10).
+[RELEASING.md](https://github.com/Fleetdock/fleetdock/blob/main/RELEASING.md#compatibility).
 
 `GET /v1/version` reports the running version and commit, and the oldest supported agent
 version.
 
-### Removed in 1.0
+### Removed in 0.10
 
 - `POST /v1/instances/{id}/test-connection` and `POST /v1/instances/{id}/import-databases`.
   Use `POST /v1/instances/{id}/probe`, which checks the connection and refreshes the database
