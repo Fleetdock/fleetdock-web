@@ -52,7 +52,7 @@ const boundaries = [
 const scenarios = [
   {
     title: "Manager compromise",
-    body: "The largest blast radius: an attacker could reach every stored credential and command every agent. Keep it behind TLS, restrict access, and monitor the operations log.",
+    body: "The largest blast radius: an attacker could reach every stored credential and command every agent. Keep it behind TLS, restrict access, and watch the activity and audit logs.",
   },
   {
     title: "Agent compromise",
@@ -60,7 +60,7 @@ const scenarios = [
   },
   {
     title: "Database credential exposure",
-    body: "Store least-privilege admin users so a leaked credential cannot do more than its grants allow. Rotate the credential and re-test the connection.",
+    body: "Store least-privilege admin users so a leaked credential cannot do more than its grants allow. Rotate the credential and check the connection again.",
   },
   {
     title: "Backup credential exposure",
@@ -73,16 +73,18 @@ const protections = [
   "Single-use, short-lived agent registration tokens",
   "Per-server agent token revocation and rotation, with one-time re-enroll commands",
   "Agent runs inside a sandboxed systemd unit (no new privileges, read-only system paths)",
-  "Envelope-encrypted secrets with operator-controlled key rotation",
+  "Envelope-encrypted secrets — including notification webhooks and SMTP passwords — with one-command key rotation",
   "Changing a password invalidates that user's existing sessions everywhere",
   "SSRF-resistant outbound HTTP — webhooks cannot reach loopback or cloud metadata",
   "Public database access off by default, with CIDR allowlists at the proxy",
   "Presigned-URL backups — agents never receive storage credentials",
-  "Role-based access control and scoped, revocable API tokens",
-  "Login rate limiting, Content-Security-Policy and security headers, and health/readiness probes",
+  "Role-based access control and scoped, revocable API tokens that expire after 90 days by default",
+  "An audit log of sign-ins and every change, with user, address and outcome",
+  "Sign-in limits per address and per account, Content-Security-Policy and security headers, and health/readiness probes",
   "Multiple replicas can share one metadata database — jobs and housekeeping are locked in Postgres",
   "Automatic HTTPS, with the API reachable only through the proxy",
   "Production mode that refuses to boot with default secrets",
+  "Signed release images and checksums, and checksum-verified agent installs",
 ];
 
 export default function SecurityPage() {
@@ -178,9 +180,6 @@ export default function SecurityPage() {
                 <li>
                   The agent runs as root (required to drive Docker), inside a sandboxed systemd
                   unit.
-                </li>
-                <li>
-                  Audit events are recorded but not yet exposed through the API or dashboard.
                 </li>
                 <li>
                   Gateway TLS is passthrough only, with one public port per database.

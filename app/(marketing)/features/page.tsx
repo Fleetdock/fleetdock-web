@@ -13,6 +13,12 @@ import {
   Database,
   TableProperties,
   ScrollText,
+  SquareTerminal,
+  Bookmark,
+  Network,
+  Layers,
+  GitCompareArrows,
+  Lock,
 } from "lucide-react";
 import { PageHero } from "@/components/marketing/page-hero";
 import { DatabaseOperations } from "@/components/marketing/database-operations";
@@ -23,7 +29,7 @@ import { FinalCta } from "@/components/marketing/final-cta";
 export const metadata: Metadata = createMetadata({
   title: "Features",
   description:
-    "Provisioning, monitoring, backups, restores, migrations, alerting, RBAC, and live administration for MariaDB, MySQL, and PostgreSQL from one control plane.",
+    "Provisioning, monitoring, backups, restores, migrations, alerting, RBAC, a data browser, SQL across the fleet, and schema history for MariaDB, MySQL, and PostgreSQL from one control plane.",
   path: "/features",
 });
 
@@ -60,6 +66,39 @@ const automation: FeatureItem[] = [
   },
 ];
 
+const data: FeatureItem[] = [
+  {
+    icon: TableProperties,
+    title: "Data browser",
+    body: "Open tables in tabs with filters on any column, search and sort, inline editing with undo, frozen and hidden columns, a row panel, full screen, and a schema picker — then export the filtered rows to CSV.",
+  },
+  {
+    icon: SquareTerminal,
+    title: "SQL console",
+    body: "Run multi-statement scripts with autocompletion, a confirmation before anything writes, cancel, query plans as a tree, and your own history and saved queries.",
+  },
+  {
+    icon: Bookmark,
+    title: "Saved table views",
+    body: "Save a table's filters, sort, hidden and frozen columns, and widths as a named view — private or shared with everyone who can open the database — and link straight to it.",
+  },
+  {
+    icon: Network,
+    title: "ER diagram",
+    body: "See every table, key, and foreign key as an entity-relationship diagram, laid out automatically. Focus on a table and its neighbours, pick schemas, and download PNG or SVG.",
+  },
+  {
+    icon: Layers,
+    title: "Fleet query",
+    body: "Run one SQL script on up to 500 databases at once and read the merged results side by side, with each database's status, rows, and errors, and a CSV of the lot.",
+  },
+  {
+    icon: GitCompareArrows,
+    title: "Schema history & drift",
+    body: "Record every structural change, however it was made, and get notified. Compare two databases to spot drift and generate the migration script that makes them match.",
+  },
+];
+
 const administration: FeatureItem[] = [
   {
     icon: UserCheck,
@@ -74,7 +113,7 @@ const administration: FeatureItem[] = [
   {
     icon: KeyRound,
     title: "Scoped API tokens",
-    body: "Create, list, and revoke API tokens scoped like sessions for automation and CI, without sharing user passwords.",
+    body: "API tokens scoped like sessions for automation and CI, expiring after 90 days by default. Administrators see and revoke everyone's tokens in one place.",
   },
   {
     icon: Database,
@@ -82,14 +121,14 @@ const administration: FeatureItem[] = [
     body: "Manage database users and grants for MariaDB, MySQL, and PostgreSQL directly from the dashboard, including grant and revoke of schema privileges.",
   },
   {
-    icon: TableProperties,
-    title: "Tables, data & SQL console",
-    body: "Browse tables with a paginated row viewer, run queries in a SQL console, and export a database to CSV — per database, per instance.",
+    icon: Lock,
+    title: "Encrypted secrets",
+    body: "Database passwords, SSH keys, storage keys, and notification secrets are envelope-encrypted at rest, and one command rotates the master key.",
   },
   {
     icon: ScrollText,
     title: "Audit log",
-    body: "Mutating actions are recorded in an audit log, and every asynchronous action is tracked as an operation with status, progress, and errors.",
+    body: "See who did what — sign-ins, access changes, backups, console writes, and data edits — with user, address, and outcome. Filter it and export CSV.",
   },
 ];
 
@@ -107,6 +146,12 @@ export default function FeaturesPage() {
         title="Automate the operations that used to be cron jobs."
         description="Scheduling, alerting, and metrics are built in, so the fleet keeps itself visible instead of relying on someone remembering to check."
         items={automation}
+      />
+      <FeatureGrid
+        eyebrow="Working with data"
+        title="Browse, query, and compare data across the fleet."
+        description="A data browser, SQL console, and ER diagram for every database, plus fleet-wide queries and schema history — no separate database client to install."
+        items={data}
       />
       <FeatureGrid
         eyebrow="Access & administration"

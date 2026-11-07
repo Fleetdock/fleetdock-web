@@ -8,8 +8,10 @@ operations and always verify the backup before touching the target.
 
 ## Selecting a backup
 
-Restores start from a backup. Pick the backup you want from a database's backup list, then
-choose where to restore it.
+Restores start from a backup. Pick the backup you want from a database's **Backups** tab (or
+**Backups → History**), choose **Restore…** in its menu, then choose where to restore it. The
+target must be on a server of the same engine family as the backup — PostgreSQL, or
+MySQL/MariaDB — and the dialog only offers such servers.
 
 ## Restoring to the same instance
 
@@ -58,4 +60,4 @@ original.
 - **Credential errors** — the stored admin credentials cannot write to the target. Update the
   instance credentials and retry.
 
-Every restore appears on the **Operations** page with its status and any error message.
+Every restore appears on the **Activity** page with its status and any error message.

@@ -35,7 +35,8 @@ except through the proxy.
 
 The Manager is the highest-value component. It stores encrypted credentials for the whole
 fleet and can enqueue operations on every node. Protect it accordingly: terminate TLS in
-front of it, restrict who can reach it, and monitor the **Operations** log.
+front of it, restrict who can reach it, and watch **Activity** (tasks) and **Activity → Audit
+log** (who did what).
 
 ## Agent privileges
 
@@ -58,8 +59,10 @@ Docker-level control of its node.
 
 ## Database credentials
 
-Instance admin credentials and destination storage keys are **envelope-encrypted** at rest
-with `FLEETDOCK_ENCRYPTION_KEY`. Use **least-privilege** database users for stored admin
+Instance admin credentials, SSH keys, backup storage keys, and notification secrets (webhook
+and Slack URLs, SMTP passwords) are **envelope-encrypted** at rest with
+`FLEETDOCK_ENCRYPTION_KEY`. Notification channels saved by versions before 0.10 are encrypted
+on the first start. Use **least-privilege** database users for stored admin
 credentials so a leak cannot exceed its grants.
 
 ## Gateway and public access
@@ -87,7 +90,7 @@ Fleetdock uses three token types, each with a display prefix:
 | ------------------ | --------- | ---------------------------- | --------------------------------------------- |
 | Registration token | `fleetr_` | Enroll a new agent           | Single-use, short-lived                       |
 | Agent bearer token | `fleeta_` | Ongoing agent authentication | Issued on enrollment; revocable and rotatable per server |
-| API token          | `fleetd_` | Automation / CI access       | Created, listed, and revoked in the dashboard |
+| API token          | `fleetd_` | Automation / CI access       | Created and revoked under **Access → API tokens**; expire after 90 days by default |
 
 <Callout type="warn">
   Never share a real registration token or paste one into a public channel.
@@ -98,10 +101,17 @@ Fleetdock uses three token types, each with a display prefix:
 
 ### Creating, expiring, and revoking tokens
 
-Create API tokens scoped like sessions and set an expiry. Revoke API tokens from the
-dashboard. Rotating `FLEETDOCK_JWT_SECRET` invalidates all sessions and login-derived API
-tokens (but not agent tokens). Suspending a user account stops its sessions and tokens from
-working immediately.
+Create API tokens under **Access → API tokens**, scoped like sessions. New tokens expire
+after **90 days** by default; choose anything from 7 days to 1 year, or no expiry (the dialog
+warns that such a token works until someone revokes it).
+
+Administrators (`user:write`) also see **everyone's** working tokens there — owner, scopes,
+expiry and last use — and can revoke any of them, for example the tokens of someone who left
+or of a compromised account (`GET /v1/api-tokens`, `DELETE /v1/api-tokens/{id}`).
+
+Rotating `FLEETDOCK_JWT_SECRET` signs everyone out of the dashboard; API tokens and agent tokens
+are random secrets looked up by hash, so they keep working — revoke them individually.
+Suspending a user account stops its sessions and tokens from working immediately.
 
 ### Session invalidation on credential change
 
@@ -152,6 +162,11 @@ session of that user.
 
 ## Outbound requests (SSRF protection)
 
+Backup storage endpoints follow the same rules as database hosts: an S3 endpoint on a
+link-local or cloud-metadata address, on the metadata database, or (in production) on loopback
+is refused.
+
+
 Notification channels let anyone with `notification:write` supply a URL that the control
 plane will then fetch. Unguarded, that is a request-forgery primitive: a webhook pointed at
 `http://169.254.169.254/` reads cloud instance-metadata credentials, and one pointed at
@@ -178,18 +193,32 @@ loopback is rejected at connect, however it got there.
 
 ## Login rate limiting and proxy headers
 
-Login is rate-limited per client IP. Which address counts as "the client" is controlled by
-`FLEETDOCK_TRUST_PROXY_HEADERS`, and it is wrong in both directions if set carelessly:
+Sign-in is limited twice:
+
+- **Per client address** — too many attempts from one address are refused for a while.
+- **Per account** — after **10 failed sign-ins to one account within 15 minutes**, that account
+  refuses sign-in for the rest of those 15 minutes, from any address. This stops password
+  guessing spread over many addresses. Refusals are recorded in the
+  [audit log](/docs/audit-log).
+
+Agent enrollment (`POST /agent/v1/register`) is rate-limited like sign-in.
+
+Which address counts as "the client" is controlled by `FLEETDOCK_TRUST_PROXY_HEADERS`, and it
+is wrong in both directions if set carelessly:
 
 | Setting | Client IP taken from | Use when |
 | --- | --- | --- |
 | `false` (default) | the transport peer | The API is reachable directly |
-| `true` | `X-Forwarded-For` | The API is reachable **only** through a trusted proxy |
+| `true` | the **last** `X-Forwarded-For` entry | The API is reachable **only** through a trusted proxy |
 
 Leaving it `false` behind a reverse proxy makes every login attempt on the internet share a
 single bucket — the proxy's address — so one attacker locks out all users. Setting it `true`
 while the API port is also directly reachable is worse: a client can spoof `X-Forwarded-For`
 and get an unlimited number of attempts.
+
+Fleetdock takes the **last** `X-Forwarded-For` entry — the one your proxy adds — because a
+client can put anything in the earlier ones. With nginx, set the header to `$remote_addr`
+rather than `$proxy_add_x_forwarded_for` (see [Manager installation](/docs/manager#https-and-reverse-proxy)).
 
 The bundled Caddy deployment sets it to `true` and never publishes port 8080, which is the
 combination that is safe. If you put the API behind your own proxy, publish nothing but the
@@ -211,14 +240,25 @@ backup buckets private and enable provider-side encryption.
 ## Secret storage and rotation
 
 Secrets are envelope-encrypted, so rotating the master key only re-wraps each secret's data
-key — payload ciphertext is untouched. Rotate with a **new key id**:
+key — payload ciphertext is untouched. On an install made with the installer, one command does
+it all — backups first, a new key under a new id, and the old `.env` put back if anything
+fails:
 
 ```bash
-export FLEETDOCK_ENCRYPTION_KEYS_OLD="master-1=<old-secret>"   # keep old key readable
-export FLEETDOCK_ENCRYPTION_KEY="<new-secret>"                 # new primary secret
-export FLEETDOCK_ENCRYPTION_KEY_ID="master-2"                  # new primary id
-make rotate-keys
-# once it reports 0 remaining, drop FLEETDOCK_ENCRYPTION_KEYS_OLD
+fleetdock rotate-keys
+```
+
+See [Rotate the encryption key](/docs/manager#rotate-the-encryption-key). With Compose from
+source, keep the old key readable, promote a new one under a **new key id**, restart, and
+re-wrap:
+
+```bash
+FLEETDOCK_ENCRYPTION_KEYS_OLD="master-1=<old-secret>"   # keep old key readable
+FLEETDOCK_ENCRYPTION_KEY="<new-secret>"                 # new primary secret
+FLEETDOCK_ENCRYPTION_KEY_ID="master-2"                  # new primary id
+# restart the control plane with these settings, then:
+docker compose exec fleetdock /api rotate-keys          # or: make rotate-keys
+# once it reports every secret current, drop FLEETDOCK_ENCRYPTION_KEYS_OLD and restart
 ```
 
 <Callout type="error">
@@ -245,6 +285,22 @@ Background work is safe to run on several replicas against one metadata database
 claimed with `FOR UPDATE SKIP LOCKED`, and housekeeping and migrations take Postgres
 advisory locks so only one replica runs them at a time. `/healthz` and `/readyz` are unauthenticated probes.
 
+## Signed releases
+
+Release images and the `SHA256SUMS` checksum file are signed with
+[cosign](https://docs.sigstore.dev/) keyless signing, which proves they were built by the
+Fleetdock repository's release workflow from a version tag. Verify an image before you run it:
+
+```bash
+cosign verify ghcr.io/fleetdock/fleetdock:v0.10.0 \
+  --certificate-identity-regexp '^https://github.com/Fleetdock/fleetdock/\.github/workflows/release\.yml@refs/tags/v' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+```
+
+[RELEASING.md](https://github.com/Fleetdock/fleetdock/blob/main/RELEASING.md#verifying-a-release)
+shows how to verify the checksum file too. The agent installer checks the agent binary against
+the SHA-256 your Manager publishes before installing it.
+
 ## Node isolation and least privilege
 
 - Keep database ports on private networks; use the Fleetdock Gateway for external access
@@ -259,8 +315,8 @@ advisory locks so only one replica runs them at a time. `/healthz` and `/readyz`
   credential and command every agent. Restrict access and monitor operations.
 - **Agent compromise** — limited to that node's databases and Docker host, but that node's
   data is exposed. Isolate nodes and use least-privilege users.
-- **Database credential exposure** — bounded by the user's grants; rotate the credential and
-  re-test the connection.
+- **Database credential exposure** — bounded by the user's grants; rotate the credential,
+  update it with **Edit** on the database server's page, and use **Check now**.
 - **Backup credential exposure** — storage keys are encrypted on the Manager and never given
   to agents; presigned URLs are time-limited. Rotate keys and keep buckets private.
 

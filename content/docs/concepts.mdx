@@ -27,7 +27,8 @@ minutes is flipped to `offline`.
 
 ## Instance
 
-An **instance** is a database server process. There are two kinds:
+An **instance** is a database server process — a **database server** in the dashboard.
+There are two kinds:
 
 - **Managed** — runs on one of your nodes; operations are executed by that node's agent
   against `127.0.0.1`. A managed instance is either **provisioned** by Fleetdock (a database
@@ -52,25 +53,28 @@ through a pluggable engine layer that more engines can be added to later.
 ## Operation
 
 An **operation** is any asynchronous action — create or drop a database, backup, restore,
-import, or connection test — tracked as a job with status, progress, and errors. Managed
--instance jobs are claimed by the node's agent; external-instance jobs run on the
-Manager's built-in worker. Every operation is visible on the **Operations** page.
+move, or import — tracked as a task with status, progress, and errors. Managed-instance tasks
+are claimed by the node's agent; external-instance tasks run on the Manager's built-in worker.
+Every operation is visible on the **Activity** page.
 
-## Backup and destination
+## Backup and backup storage
 
-A **backup** is a point-in-time dump of a database (`mariadb-dump`, gzipped, checksummed).
-A **destination** is the S3, Cloudflare R2, or S3-compatible bucket a backup is streamed
-to. Storage keys — and instance passwords — are envelope-encrypted at rest.
+A **backup** is a point-in-time dump of a database (`pg_dump` or `mariadb-dump`, gzipped,
+checksummed). **Backup storage** (a *destination* in the API) is the S3, Cloudflare R2, or
+S3-compatible bucket a backup is streamed to, set up under **Backups → Storage**. Storage
+keys — and instance passwords — are envelope-encrypted at rest.
 
 ## Restore
 
-A **restore** writes a backup's contents into a target database. Restores verify the
-backup artifact's checksum before touching the target and report the restored table count.
+A **restore** writes a backup's contents into a target database on a server of the same
+engine family (PostgreSQL, or MySQL/MariaDB). Restores verify the backup artifact's checksum
+before touching the target and report the restored table count.
 
 ## Migration (move)
 
-A **migration** relocates or copies a database to another instance or server. It runs as a
-saga: backup → restore → verify → optionally drop the source. Leaving the source in place
+A **migration** relocates or copies a database to another instance or server (**Copy or
+move** in a database's **⋯** menu). It runs as a saga: backup → restore → verify → optionally
+drop the source. Leaving the source in place
 makes it a copy; dropping it makes it a true move.
 
 ## Credential
@@ -110,6 +114,6 @@ dashboard and alerting.
 ```text
 Manager ──enqueues──▶ Operation ──claimed by──▶ Agent ──runs on──▶ Node
                                                                    └─ Instance ─ Database
-Backup ──streamed to──▶ Destination (S3 / R2)
+Backup ──streamed to──▶ Backup storage (S3 / R2)
 Migration = Backup ▶ Restore ▶ Verify ▶ (optional) Drop source
 ```

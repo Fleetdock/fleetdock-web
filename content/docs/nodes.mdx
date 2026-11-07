@@ -22,8 +22,8 @@ enrolls and appears within about 30 seconds.
 
 Each node reports a status derived from its heartbeats:
 
+- **Pending** — enrolled, waiting for its first heartbeat.
 - **Online** — heartbeating normally.
-- **Maintenance** — you can put a node into maintenance while you work on it.
 - **Offline** — no heartbeat for the timeout window.
 
 ## Resource metrics
@@ -57,10 +57,16 @@ of instances running on the node. Use it to decide where to provision the next i
   when provisioning. Review a node's headroom before adding instances.
 </Callout>
 
-## Node labels and maintenance mode
+## Tags
 
-Use maintenance mode to signal that a node is being worked on. Node labels help you group
-and identify servers within a larger fleet.
+Tags (such as `prod` or `eu-west`) help you group and identify servers in a larger fleet. Set
+them when you connect a server, or later with **Rename server** on its page.
+
+## Agent version
+
+Each server shows its agent's version. When the agent is older than the Manager, the server
+list marks it **Update** and its page shows how to update it — see
+[Agent installation](/docs/agents#update).
 
 ## Removing a node
 
@@ -73,4 +79,4 @@ itself — uninstall the agent and clean up any provisioned containers you no lo
 If a node stops heartbeating for `FLEETDOCK_HEARTBEAT_TIMEOUT` (default `2m`), the Manager
 flips it to `offline`. Operations targeting a managed instance on that node cannot be
 executed by its agent until it returns. You can configure alert rules to notify you when a
-server goes offline — see [Backups](/docs/backups) and the Notifications page.
+server goes offline under **Settings → Notifications**.

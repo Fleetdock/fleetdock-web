@@ -116,10 +116,10 @@ host, a full disk can also cause `/readyz` failures.
 
 ## Backup failure
 
-Open the **Operations** page and read the failed operation's error. Common causes: the
-destination bucket is unreachable or misconfigured (re-run **Test bucket** on the
-**Destinations** page), or the instance is unreachable from the executing side. Configure
-notification channels to be alerted automatically.
+Open the **Activity** page and read the failed task's error. Common causes: the bucket is
+unreachable or misconfigured (run **Test** under **Backups → Storage**), or the instance is
+unreachable from the executing side. Configure notification channels under **Settings →
+Notifications** to be alerted automatically.
 
 ## Restore failure
 
@@ -135,7 +135,8 @@ is left intact — fix the cause (capacity, connectivity, credentials) and retry
 
 ## Database instance remains unhealthy
 
-Inspect the container on the node and the operation history:
+Use **Check now** on the database server's page to check the connection again, then inspect
+the container on the node and the task history on the **Activity** page:
 
 ```bash
 docker ps -a
@@ -225,8 +226,17 @@ cat /etc/fleetdock-agent/agent.env      # FLEETDOCK_URL, FLEETDOCK_TOKEN, FLEETD
 ls -l /usr/local/bin/fleetdock-agent
 ```
 
-<Callout type="info">
-  Missing first-class diagnostic commands (for example a bundled `doctor` / preflight check)
-  are noted as a product gap. Until they exist, the commands on this page are the supported
-  way to diagnose issues.
-</Callout>
+If the agent runs but the server is marked **Update** or **Too old**, update it in place
+with the installer — see [Agent installation](/docs/agents#update).
+
+## Manager does not start after an upgrade
+
+The Manager refuses to start, and says why in its logs (`fleetdock logs fleetdock`), when:
+
+- **the metadata database was migrated by a newer Fleetdock** — you are running an older
+  version against a newer schema. Run the newer version again, or restore the metadata backup
+  taken before the upgrade;
+- **a migration that was already applied has changed** — the schema may not match the code;
+- **migrations are pending** while `FLEETDOCK_RUN_MIGRATIONS=false` — run them first.
+
+See [Update](/docs/manager#update).

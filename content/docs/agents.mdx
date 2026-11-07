@@ -45,9 +45,11 @@ curl -sSL https://your-control-plane/install.sh | \
 
 ## What the installer does
 
-1. Downloads the agent binary from `FLEETDOCK_URL/agent/v1/binary/linux/<arch>` to
-   `/usr/local/bin/fleetdock-agent`.
-2. Installs MariaDB and PostgreSQL client tools (used for backups and restores).
+1. Downloads the agent binary from `FLEETDOCK_URL/agent/v1/binary/linux/<arch>`, checks it
+   against the SHA-256 the Manager publishes (`…/binary/linux/<arch>/sha256`), and moves it
+   into place as `/usr/local/bin/fleetdock-agent`.
+2. Installs MariaDB and PostgreSQL client tools (used for backups and restores). MySQL
+   databases are dumped with `mariadb-dump` too (or `mysqldump` if that is what is installed).
 3. Ensures Docker is installed and enabled (for provisioning).
 4. Writes configuration to `/etc/fleetdock-agent/agent.env` (mode `600`).
 5. Installs and starts the `fleetdock-agent` systemd service.
@@ -92,20 +94,27 @@ journalctl -u fleetdock-agent --since "10 min ago"
 
 ## Update
 
-Re-run the install command from the dashboard with a fresh token, or replace the binary
-and restart:
+The Manager tells you when an agent is behind. A server whose agent is older than the Manager
+shows **Update** in the server list, an **Agent update available** notice on its page (with the
+command, under **How to update**), and an item on the overview. An agent older than the oldest
+version the Manager supports shows **Too old** instead (and *Agent too old* on the overview);
+it may fail to run tasks, so update it first.
+
+To update, run the installer on the server **without** a registration token:
 
 ```bash
-curl -fsSL https://your-control-plane/agent/v1/binary/linux/amd64 \
-  -o /usr/local/bin/fleetdock-agent
-chmod +x /usr/local/bin/fleetdock-agent
-systemctl restart fleetdock-agent
+curl -sSL https://<your-fleetdock>/install.sh | sudo sh
 ```
 
+On a server that is already enrolled, this updates the agent in place: it downloads the binary
+from your Manager, checks its SHA-256, replaces it and restarts the service. The server keeps
+its identity and agent token, and nothing about its databases changes. The new version shows
+on the server's page after the next heartbeat.
+
 <Callout type="info">
-  The exact agent update workflow is still being finalized upstream. Until a dedicated
-  update path is documented, replacing the binary and restarting the service is the
-  reliable approach.
+  Agents keep working across a Manager upgrade. A Manager accepts agents from its own minor
+  version and the one before, so you can update the fleet after upgrading the Manager. The API
+  reports each server's `agent_status` (`current`, `outdated`, `unsupported` or `unknown`).
 </Callout>
 
 ## Uninstall

@@ -7,19 +7,22 @@ Fleetdock backs up databases with each engine's native logical dump tool — `ma
 (or `mysqldump`) for MariaDB and MySQL, and `pg_dump` for PostgreSQL — gzips the output, and
 streams it to object storage. Backups are checksummed and tracked as operations.
 
-## Backup destinations
+## Backup storage
 
-A **destination** is where backups are stored. Fleetdock supports:
+**Backup storage** (a *destination* in the API) is where backups are stored. Fleetdock
+supports:
 
 - **Amazon S3**
 - **Cloudflare R2**
 - **S3-compatible** buckets
 
-Add a destination under **Destinations**, then use **Test bucket** to verify access.
+Add it under **Backups → Storage**, then use **Test** to verify access.
 
 <Callout type="info">
-  These are the storage providers implemented in the current release. Destination secret
-  keys are encrypted at rest with `FLEETDOCK_ENCRYPTION_KEY`.
+  These are the storage providers implemented in the current release. Secret keys are
+  encrypted at rest with `FLEETDOCK_ENCRYPTION_KEY`. Like database hosts, an endpoint on a
+  link-local or cloud-metadata address, on the metadata database, or (in production) on
+  loopback is refused.
 </Callout>
 
 ## How backups work
@@ -30,12 +33,18 @@ agent moves the bytes but never receives your storage credentials — the Manage
 the presigned URL. Fleetdock records the object location, a SHA-256 checksum, and the backup
 size.
 
+Backups of external database servers run on the control plane, whose image ships the
+PostgreSQL 18 client, so PostgreSQL 18 servers can be backed up too — a newer `pg_dump`
+reads older servers, never the reverse. On a node, the agent uses the client tools its
+installer set up.
+
 <Screenshot name="backups" />
 
 ## Manual backups
 
-From a database's detail page, trigger a backup. It appears as an operation with status and
-progress on the **Operations** page.
+From a database's page, choose **Back up now**. It appears as a task with status and
+progress on the **Activity** page, and in the database's **Backups** tab and **Backups →
+History**.
 
 ## Download a backup without storage
 
@@ -67,7 +76,7 @@ the whole database, use **Compare with a backup…** in the Data browser. See
 
 ## Scheduled backups
 
-Create recurring backups on the **Schedules** page. Each schedule targets a database, runs
+Create recurring backups under **Backups → Schedules**. Each schedule targets a database, runs
 on a cron cadence, and has a **retention window**. The worker enqueues scheduled backups and
 prunes expired ones.
 
@@ -82,11 +91,11 @@ both the object and its metadata so storage does not grow unbounded.
 
 Every backup is a tracked operation. If a backup fails, the operation records the error, and
 — if you have configured notification channels — Fleetdock notifies you automatically.
-Configure email, Slack, or webhook channels on the **Notifications** page.
+Configure email, Slack, or webhook channels under **Settings → Notifications**.
 
 ## Backup encryption
 
-Fleetdock encrypts **credentials and destination keys** at rest with envelope encryption.
+Fleetdock encrypts **credentials and storage keys** at rest with envelope encryption.
 Object-level encryption of the backup contents in the bucket is provided by your storage
 provider — enable bucket encryption and keep buckets private. Presigned URLs are
 time-limited.
@@ -102,8 +111,12 @@ Each backup stores a SHA-256 checksum. Restores verify that checksum **before** 
 target (see [Restore](/docs/restores)), so a corrupted artifact is caught before it can
 overwrite a database.
 
+To test a backup end to end, choose **Check that it restores** in its menu. Fleetdock
+restores it into a temporary database, drops that afterwards, and shows the result on the
+backup (*restores OK* or *check failed*). A failed check sends a `backup.verify_failed`
+notification.
+
 <Callout type="warn">
-  Fleetdock does not currently perform a scheduled, standalone "test restore" of backups.
-  Periodically restore a backup into a throwaway instance to confirm your recovery path end
-  to end.
+  Checks run when you start them; they are not scheduled. Check your important backups
+  regularly, and rehearse a full restore of your most critical databases.
 </Callout>
