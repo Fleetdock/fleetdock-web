@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { siteConfig } from "@/lib/site-config";
-import { ogImageSize, renderOgImage } from "@/lib/og";
+import { OgWordmark, ogImageSize, renderOgImage } from "@/lib/og";
 
 // Rendered once at build time (static export).
 export const dynamic = "force-static";
@@ -44,24 +44,7 @@ export default async function OpengraphImage() {
       >
         <div style={{ display: "flex", flexDirection: "column", padding: "64px 0 0 72px", gap: 22, maxWidth: 760 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 5,
-                width: 52,
-                height: 52,
-                background: "#0f766e",
-                borderRadius: 12,
-                padding: "12px 11px",
-                justifyContent: "center",
-              }}
-            >
-              <div style={{ height: 5, width: "62%", borderRadius: 3, background: "#fff" }} />
-              <div style={{ height: 5, width: "100%", borderRadius: 3, background: "#fff" }} />
-              <div style={{ height: 5, width: "78%", borderRadius: 3, background: "#fff" }} />
-            </div>
-            <div style={{ fontSize: 32, fontWeight: 600, letterSpacing: -0.5 }}>{siteConfig.name}</div>
+            <OgWordmark height={40} />
           </div>
           <div style={{ fontSize: 56, fontWeight: 600, lineHeight: 1.05, letterSpacing: -2 }}>{TITLE}</div>
           <div style={{ fontSize: 24, color: "#a1a1aa", lineHeight: 1.3 }}>{DESCRIPTION}</div>

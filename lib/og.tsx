@@ -1,5 +1,20 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { siteConfig } from "@/lib/site-config";
+
+const WORDMARK_RATIO = 1016.43 / 196;
+let wordmarkSrc: string | undefined;
+
+/**
+ * The full logo for dark backgrounds (public/logo-dark.svg, from the logo kit)
+ * as an image the OG renderer can draw. The cards are always dark.
+ */
+export function OgWordmark({ height }: { height: number }) {
+  wordmarkSrc ??= `data:image/svg+xml;base64,${readFileSync(join(process.cwd(), "public/logo-dark.svg")).toString("base64")}`;
+  // eslint-disable-next-line @next/next/no-img-element -- rendered by next/og, not the browser
+  return <img src={wordmarkSrc} width={Math.round(height * WORDMARK_RATIO)} height={height} alt={siteConfig.name} />;
+}
 
 /** Keep long descriptions to about three lines on the card. */
 function truncate(text: string, max: number) {
@@ -44,26 +59,7 @@ export function renderOgImage({
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 7,
-              width: 68,
-              height: 68,
-              background: "#0f766e",
-              borderRadius: 15,
-              padding: "16px 14px",
-              justifyContent: "center",
-            }}
-          >
-            <div style={{ height: 7, width: "62%", borderRadius: 4, background: "#ffffff" }} />
-            <div style={{ height: 7, width: "100%", borderRadius: 4, background: "#ffffff" }} />
-            <div style={{ height: 7, width: "78%", borderRadius: 4, background: "#ffffff" }} />
-          </div>
-          <div style={{ fontSize: 40, fontWeight: 600, letterSpacing: -1 }}>
-            {siteConfig.name}
-          </div>
+          <OgWordmark height={52} />
           {label ? (
             <div
               style={{
