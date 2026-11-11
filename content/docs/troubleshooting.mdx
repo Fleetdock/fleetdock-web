@@ -240,3 +240,11 @@ The Manager refuses to start, and says why in its logs (`fleetdock logs fleetdoc
 - **migrations are pending** while `FLEETDOCK_RUN_MIGRATIONS=false` — run them first.
 
 See [Update](/docs/manager#update).
+
+## Dashboard opened over plain HTTP on a network address
+
+Browsers keep some features to secure pages: HTTPS, or `localhost`. Opened as
+`http://192.168.x.x:…`, Fleetdock works around them (copying, running queries and saving edits
+work since 0.11), but credentials and sessions still travel unencrypted. Put the dashboard
+behind HTTPS (see [Networking](/docs/networking)), or reach it through an SSH tunnel to
+`localhost`.
