@@ -11,6 +11,10 @@ Which login it connects as is set per instance (**Data browsing connects as**, i
 settings): the admin login (only instance administrators may then browse), a dedicated login you
 create, or Fleetdock-managed roles confined to each database. See [Security](/docs/security).
 
+A click on a table in the sidebar opens it in a preview tab, which the next click replaces.
+Double-click it, or <kbd>Shift</kbd>/<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>-click it, to keep the tab
+open.
+
 ## Editing rows
 
 Edits stay pending in the tab until you save. Rows are identified by their primary key (or a
@@ -63,7 +67,29 @@ search, sort, hidden and frozen columns, column widths and rows per page.
   field there; the change joins the tab's pending edits. Arrows move to the previous and next
   row.
 - **⋯ → Taller rows** switches to roomier rows; **Compact rows** switches back.
+- **⋯ → Hide row numbers** drops the row-number column; a slim handle stays for selecting
+  rows. It is remembered in this browser.
 - Pages of up to 500 rows scroll smoothly: only the rows in view are drawn.
+
+## JSON values
+
+A cell holding a JSON object or array, whatever the column's type, shows as a collapsible tree in
+the value panel and the row panel, with a **Raw** view of the text. Editing such a cell opens the
+value panel with the JSON formatted and coloured the same way; invalid JSON is marked before you
+save.
+
+## Command panel
+
+The **command panel** button in the toolbar opens a SQL editor under the grid, already filled with
+a `SELECT` on the table; drag its top edge to resize it. <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>Enter</kbd>
+runs it.
+
+- A query's rows (up to 1,000) replace the table until you dismiss them or change page.
+- A statement that changes data is dry-run first, in a transaction that is rolled back, and you
+  confirm it with the number of rows it would change. After it runs, the table reloads.
+
+It runs with the same access as the [SQL console](/docs/sql-console). Whether the panel is open
+is remembered in this browser.
 
 ## Filters and export
 
