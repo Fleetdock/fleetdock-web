@@ -17,6 +17,7 @@
     "migrations",
     "---Working with data---",
     "data-browser",
+    "postgresql",
     "sql-console",
     "fleet-query",
     "schema-history",

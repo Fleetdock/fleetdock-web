@@ -46,6 +46,10 @@ From a database's page, choose **Back up now**. It appears as a task with status
 progress on the **Activity** page, and in the database's **Backups** tab and **Backups →
 History**.
 
+On PostgreSQL, **What to back up** picks the whole database or one schema. A schema backup is
+`pg_dump -n <schema>`, carries a *schema* badge in the history and is restored with its own
+dialog; see [Back up, restore and export one schema](/docs/postgresql#back-up-restore-and-export-one-schema).
+
 ## Download a backup without storage
 
 You don't need a bucket for a one-off backup. Open a database, choose **Back up now →
@@ -91,7 +95,13 @@ both the object and its metadata so storage does not grow unbounded.
 
 Every backup is a tracked operation. If a backup fails, the operation records the error, and
 — if you have configured notification channels — Fleetdock notifies you automatically.
-Configure email, Slack, or webhook channels under **Settings → Notifications**.
+Configure email, Slack, webhook or PagerDuty channels under **Settings → Notifications**.
+
+A PagerDuty channel takes an Events API v2 routing key, stored encrypted. Alerts open one
+incident per rule and server and resolve it when the metric recovers; a failed backup or an
+offline server opens its own incident. Informational events are not sent to PagerDuty, and
+**Test** resolves the test incident right away. Alert state is kept in memory, so an incident
+whose metric recovered while the control plane was restarting may need resolving by hand.
 
 ## Backup encryption
 

@@ -16,6 +16,12 @@ runs the script.
 
 A MySQL-style `DELIMITER` line lets you create procedures and triggers whose bodies contain `;`.
 
+On PostgreSQL, the schema picker next to the row limit sets the session's `search_path`:
+choose `sales` and unqualified names are looked up in `sales`, then `public`. Your browser
+remembers the choice per database; the data browser's command panel uses the same one. It
+changes nothing on the server; to set a database's or a role's default, see
+[PostgreSQL schemas and extensions](/docs/postgresql#privileges-default-privileges-and-search_path).
+
 ## Autocompletion
 
 The editor completes keywords and the database's real tables and columns (on PostgreSQL,

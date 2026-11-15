@@ -13,6 +13,9 @@ Restores start from a backup. Pick the backup you want from a database's **Backu
 target must be on a server of the same engine family as the backup — PostgreSQL, or
 MySQL/MariaDB — and the dialog only offers such servers.
 
+A backup of one PostgreSQL schema restores into a database rather than as one, under its own
+name or a new one; see [PostgreSQL schemas and extensions](/docs/postgresql#back-up-restore-and-export-one-schema).
+
 ## Restoring to the same instance
 
 Restoring into the same database overwrites its current contents with the backup. This is a

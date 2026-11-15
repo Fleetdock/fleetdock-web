@@ -1,0 +1,162 @@
+---
+title: PostgreSQL schemas and extensions
+description: Create, rename, copy, move and drop PostgreSQL schemas, manage their privileges and search_path, keep tables healthy, back up one schema, and install extensions such as pgvector.
+---
+
+A PostgreSQL database can hold many **schemas**, each with its own tables, views, functions and
+types. Fleetdock manages them from the [Data browser](/docs/data-browser) and the database's page.
+Everything here is PostgreSQL only: on MySQL and MariaDB a schema is a database.
+
+## Every schema, empty ones too
+
+The data browser's table tree and schema picker list every schema of the database, including
+ones without a table yet. An empty schema shows as *empty* with **Create table here**, and
+**Create table** opens in the schema you are looking at. Hovering a schema's header shows its
+owner, size and comment.
+
+The API equivalent is `GET /v1/databases/{id}/schemas`.
+
+## Schema menu
+
+Right-click a schema's header in the table tree (or use the toolbar's **New schema** button):
+
+| Action | What it does |
+| --- | --- |
+| **New schema…** | `CREATE SCHEMA`, owned by the database's owner unless you pick another role. |
+| **Rename…**, **Change owner…**, **Comment…** | `ALTER SCHEMA` / `COMMENT ON SCHEMA`. Your schema choice in the picker follows a rename. |
+| **Copy to new schema…** | Copies the schema, with or without rows (see below). |
+| **Back up or export…** | Backs up or downloads only this schema (see below). |
+| **Table statistics…** | Size, rows, dead rows and last vacuum and analyze of each table, with **VACUUM ANALYZE**. |
+| **Drop schema…** | Shows what the schema holds and what in other schemas depends on it first. Without **CASCADE** an empty schema is dropped; with it, you type the schema's name to confirm. |
+
+`pg_catalog`, `information_schema` and other `pg_*` schemas are never changed. Schema changes run
+as the database server's admin login and are recorded in the [audit log](/docs/audit-log).
+
+## Move objects to another schema
+
+Tables, views, materialized views, sequences, functions, procedures and types have **Move to
+schema…** in their menu (`ALTER … SET SCHEMA`). A table takes its indexes, constraints and the
+sequences of its serial columns along, and views and functions that use it keep working. SQL text
+that names the old schema (in your applications, or in function bodies) has to be changed by hand.
+
+The move is refused when the target schema already has an object of that name. An overloaded
+function is moved by naming one overload, as the object list shows it, for example
+`twice(bigint)`.
+
+## Copy a schema
+
+**Copy to new schema…** creates a new schema with the same tables, views, functions, sequences
+and types, with their rows or only their structure, in the same database or another database on
+the same server. Inside the copy, views, foreign keys, column defaults and sequences point at the
+copy, not at the original. Function bodies and other SQL text that name the original schema are
+copied unchanged; the operation's log says so.
+
+The copy runs in the background as an operation (on the agent for a server Fleetdock created).
+References to other schemas must resolve in the target database: copying `sales`, whose tables
+reference `ref.country`, into a database without `ref` fails and leaves nothing behind.
+
+<Callout type="info">
+  On servers Fleetdock created, copying a schema needs an agent from 0.12 or later. Update the
+  agent from the server's page if the operation reports an unsupported operation type.
+</Callout>
+
+## Privileges, default privileges and search_path
+
+A database's **Access** tab has a **Schema privileges** section on PostgreSQL:
+
+- **Roles on the schema.** Which roles may use objects in the schema (`USAGE`) and create objects
+  in it (`CREATE`). Tick or untick them, grant to another role or to `PUBLIC`, or revoke.
+  Fleetdock's own data roles are shown but not editable.
+- **Default privileges.** What objects created in the schema from now on are granted
+  (`ALTER DEFAULT PRIVILEGES … IN SCHEMA`), per creating role and kind (tables, sequences,
+  functions, types). Existing objects keep their privileges.
+- **search_path.** The schemas PostgreSQL looks in for names without a schema, set for the whole
+  database or for one role in it. New sessions pick a change up.
+
+Changing privileges, default privileges or a role's search_path needs write access to the
+database server as well as to the database, since they decide who may read and change data.
+
+The [SQL console](/docs/sql-console) has a schema picker for its own session: choose `sales` and
+`SELECT * FROM orders` reads `sales.orders` (with `public` after it), without changing anything on
+the server.
+
+## Housekeeping
+
+From the table tree:
+
+- **Sequences** — **Value…** shows the next value, the last one handed out, the increment and
+  range, and the column the sequence belongs to, and sets where it continues (`setval`). Setting
+  it below the current value warns that new rows may collide with existing keys.
+- **Materialized views** — **Refresh** and **Refresh concurrently**. A concurrent refresh keeps
+  the view readable and needs a unique index on it; Fleetdock says so before trying.
+- **Tables** — **VACUUM ANALYZE**, **ANALYZE** and **REINDEX**, after a confirmation that says
+  what each one locks. A schema's **Table statistics…** lists every table's size, live and dead
+  rows (highlighted from 20% dead) and last manual or automatic vacuum and analyze.
+- **Partitioned tables** appear in the tree with their partitions under them, opened like a
+  folder. **Partitions…** lists their bounds, rows and sizes.
+
+Maintenance runs as the admin login, within the request's time limit, and is recorded in the
+audit log.
+
+## Back up, restore and export one schema
+
+The **Back up** dialog has **What to back up**: the whole database or one schema. A schema backup
+is `pg_dump -n <schema>`, stored and listed like any other backup with a *schema* badge; you can
+also download it straight to your computer. From the data browser, a schema's **Back up or
+export…** opens the same dialog.
+
+**Restore…** on a schema backup asks for:
+
+- **Into database** — any PostgreSQL database, on this server or another;
+- **As schema** — its own name, or a new one;
+- **Replace** — under its own name only: drop the schema's current objects and restore them as
+  they were in the backup. Without it, the schema must not exist in the target.
+
+Restoring under a new name works like a schema copy: views, foreign keys and sequences point at
+the new name; function bodies are restored unchanged. A schema backup cannot be restored as a whole
+database, test-restored or opened next to the live database, since its objects may need the rest
+of the database.
+
+## Extensions
+
+The database page's **Extensions** tab lists the extensions installed in the database, with their
+version and schema, and **Add extension** lists the ones the server offers, marked *trusted* (a
+database owner may install it) or *superuser*. From there you can install an extension into a
+schema, update it when a newer version is available, or remove it (with CASCADE only after typing
+its name). `plpgsql` is never removed.
+
+Installing, updating and removing extensions needs write access to the database server: an
+extension can run code as a superuser. When the admin login is not allowed to install one,
+Fleetdock says why: most extensions need a superuser unless they are trusted, and managed services
+such as RDS or Cloud SQL allow only their own list.
+
+### pgvector
+
+When you create a PostgreSQL server with Fleetdock, **Include pgvector** runs the official
+`pgvector/pgvector` image for that major version, so `CREATE EXTENSION vector` (or **Add
+extension → vector**) works in its databases. It needs PostgreSQL 13 or newer and a 0.12 agent.
+Existing servers keep the image they were created with.
+
+The table editor offers `vector`, `halfvec` and `sparsevec` columns, under **Vector
+(pgvector)** or with any size through **Custom…**. Adding one to a database without the extension
+says to create it first.
+
+## API
+
+| Endpoint | What |
+| --- | --- |
+| `GET/POST /v1/databases/{id}/schemas` | List, create schemas |
+| `PATCH /v1/databases/{id}/schemas/{schema}` | Rename, change owner, comment |
+| `GET …/schemas/{schema}/dependents`, `POST …/schemas/{schema}/drop` | What a drop would take, drop |
+| `POST …/schemas/{schema}/copy` | Copy a schema (an operation) |
+| `POST /v1/databases/{id}/objects/move` | Move an object to another schema |
+| `GET/PUT …/schemas/{schema}/privileges`, `POST …/schemas/{schema}/default-privileges` | Schema privileges |
+| `GET/PUT /v1/databases/{id}/search-path` | search_path of the database and roles |
+| `GET …/sequences/{schema}/{sequence}`, `POST …/setval` | Read and set a sequence |
+| `POST …/matviews/{schema}/{view}/refresh` | Refresh a materialized view |
+| `POST /v1/databases/{id}/maintenance`, `GET …/table-stats` | VACUUM / ANALYZE / REINDEX, statistics |
+| `GET …/partitions/{schema}/{table}` | Partitions of a table |
+| `schema` on `POST /v1/backups`, `POST /v1/backups/{id}/restore-schema`, `?schema=` on `GET …/dump` | Schema backups |
+| `GET/POST /v1/databases/{id}/extensions`, `POST …/extensions/{name}/update`, `…/drop` | Extensions |
+
+See the [API reference](/docs/api) for the request and response fields.
