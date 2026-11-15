@@ -49,6 +49,10 @@ Open **Databases → Connect database server**, or **Add database server** on a 
   default), always encrypt, always encrypt and verify the certificate, or never encrypt.
 - **Data browsing connects as** — the admin login, a dedicated login you create, or
   Fleetdock-managed roles per database. See [Data browser](/docs/data-browser).
+- **Include pgvector** — new PostgreSQL servers only (14 or newer in the dashboard): runs the
+  official `pgvector/pgvector` image for that major version instead of `postgres`, so
+  `CREATE EXTENSION vector` works. It needs a 0.12 agent. See
+  [Extensions](/docs/postgresql#extensions).
 
 For a new server, Fleetdock generates a strong admin password and keeps it encrypted, and
 starts it with a named Docker data volume and the published port. Follow its progress with

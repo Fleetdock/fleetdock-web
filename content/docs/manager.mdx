@@ -121,6 +121,9 @@ Variables use the `FLEETDOCK_*` prefix. The most important ones:
 | `FLEETDOCK_TRUST_PROXY_HEADERS` | `false`               | Take the client address from the last `X-Forwarded-For` entry. Set only when the API is reachable *solely* through a proxy. |
 | `FLEETDOCK_METRICS_TOKEN`     | —                       | Enables `GET /metrics` for scrapers sending it as a bearer token. Unset, the endpoint answers `404`. |
 | `FLEETDOCK_HEARTBEAT_TIMEOUT` | `2m`                    | No heartbeat for this long ⇒ node `offline`.        |
+| `FLEETDOCK_JOB_POLL_INTERVAL` | `3s`                    | How often the worker claims queued operations; at least `1s`. |
+| `FLEETDOCK_ALERT_INTERVAL`    | `15s`                   | How often alert rules are evaluated and notifications sent; at least `5s`. |
+| `FLEETDOCK_HEALTH_CHECK_INTERVAL` | `1m`                | How often database servers are probed for health, size and connections; at least `15s`. An invalid value for these three stops the control plane from starting. |
 | `FLEETDOCK_METRICS_RETENTION` | `168h`                  | How long per-heartbeat metrics are kept.            |
 | `FLEETDOCK_AUDIT_RETENTION`   | `8760h`                 | How long [audit log](/docs/audit-log) events are kept (365 days). `0` keeps them forever. |
 | `FLEETDOCK_GATEWAY_ENABLED`   | `false`                 | Enable the Fleetdock Gateway (HAProxy) service.     |
@@ -230,7 +233,7 @@ With managed PostgreSQL, use your provider's automated backups and test a restor
 
 ```bash
 fleetdock update              # latest
-fleetdock update --tag v0.11.0 # a specific release
+fleetdock update --tag v0.12.0 # a specific release
 ```
 
 `fleetdock update` backs up the metadata database first and stops if that fails.
@@ -238,7 +241,7 @@ fleetdock update --tag v0.11.0 # a specific release
 Or, from a source checkout:
 
 ```bash
-git fetch origin && git checkout v0.11.0
+git fetch origin && git checkout v0.12.0
 docker compose -f docker-compose.yml -f docker-compose.build.yml up --build -d
 ```
 
@@ -281,7 +284,7 @@ Images and the `SHA256SUMS` file of each release are signed with
 [cosign](https://docs.sigstore.dev/) keyless signing, from the release workflow:
 
 ```bash
-cosign verify ghcr.io/fleetdock/fleetdock:v0.11.0 \
+cosign verify ghcr.io/fleetdock/fleetdock:v0.12.0 \
   --certificate-identity-regexp '^https://github.com/Fleetdock/fleetdock/\.github/workflows/release\.yml@refs/tags/v' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```
@@ -292,7 +295,7 @@ also shows how to verify the checksum file.
 ## Rotate the encryption key
 
 Stored credentials (database server passwords, SSH keys, backup storage keys, notification
-webhook URLs and SMTP passwords) are envelope-encrypted under `FLEETDOCK_ENCRYPTION_KEY`. To
+webhook URLs, SMTP passwords and PagerDuty routing keys) are envelope-encrypted under `FLEETDOCK_ENCRYPTION_KEY`. To
 replace it:
 
 ```bash
